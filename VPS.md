@@ -44,7 +44,20 @@ puis `certbot --nginx -d galerie.mondomaine.com`
 
 **Caddy existant :** `galerie.mondomaine.com { reverse_proxy 127.0.0.1:3000 }`
 
-**Nginx Proxy Manager / Traefik conteneurisés :** le port est publié sur `127.0.0.1` par défaut ; si votre proxy tourne dans Docker, mettez `GALLERY_BIND=0.0.0.0` dans le `.env` (et pare-feu sur le port 3000) ou raccordez les réseaux Docker.
+**Traefik :** utilisez le fichier dédié — la galerie se déclare par labels, Traefik route et gère le certificat, aucun port à publier :
+
+```bash
+# identifier le réseau de Traefik et le nom du certresolver :
+docker inspect $(docker ps --format '{{.Names}}' | grep -im1 traefik) \
+  --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
+docker inspect $(docker ps -q) --format '{{json .Config.Labels}}' 2>/dev/null | tr ',' '\n' | grep -m3 certresolver
+
+# puis dans .env :
+#   TRAEFIK_NETWORK=<le réseau>  TRAEFIK_CERTRESOLVER=<le resolver>  (TRAEFIK_ENTRYPOINT=websecure par défaut)
+docker compose -f docker-compose.traefik.yml up -d --build
+```
+
+**Nginx Proxy Manager conteneurisé :** le port est publié sur `127.0.0.1` par défaut ; mettez `GALLERY_BIND=0.0.0.0` dans le `.env` (et pare-feu sur le port 3000) ou raccordez les réseaux Docker.
 
 Variables optionnelles du `.env` : `GALLERY_PORT` (défaut 3000), `GALLERY_BIND` (défaut 127.0.0.1).
 

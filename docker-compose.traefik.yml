@@ -1,0 +1,24 @@
+# Mode « derrière un Traefik existant » : la galerie se déclare par labels,
+# Traefik route le domaine et obtient le certificat. Aucun port publié.
+#   Renseignez dans .env : DOMAIN, TRAEFIK_NETWORK, TRAEFIK_CERTRESOLVER
+#   puis :  docker compose -f docker-compose.traefik.yml up -d --build
+services:
+  gallery:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.photocall.rule=Host(`${DOMAIN}`)
+      - traefik.http.routers.photocall.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
+      - traefik.http.routers.photocall.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.services.photocall.loadbalancer.server.port=3000
+
+networks:
+  traefik:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik}

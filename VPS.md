@@ -57,6 +57,18 @@ PORT=3000 ADMIN_TOKEN=… GOOGLE_OAUTH_CLIENT_ID=… npm run serve
 
 Derrière n'importe quel reverse proxy HTTPS (Caddy, Nginx + certbot).
 
+## Dépannage
+
+**« address already in use » sur le port 80 ou 443 au démarrage de Caddy** : le VPS a un serveur web préinstallé (Apache ou Nginx, fréquent chez IONOS, OVH…). Identifiez-le puis désactivez-le :
+
+```bash
+ss -tlnp | grep -E ':80 |:443 '
+systemctl disable --now apache2    # ou nginx
+docker compose up -d
+```
+
+**Le certificat HTTPS ne s'obtient pas** : vérifiez que le DNS du domaine pointe bien vers l'IP du VPS (`dig +short votre-domaine`) et que les ports 80/443 sont ouverts dans le pare-feu du fournisseur.
+
 ## Notes
 
 - Le téléchargement ZIP n'a **aucune limite de durée** ici (contre 60 s sur Vercel) — utile pour les grosses galeries.

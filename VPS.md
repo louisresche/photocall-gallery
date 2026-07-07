@@ -50,6 +50,21 @@ Variables optionnelles du `.env` : `GALLERY_PORT` (défaut 3000), `GALLERY_BIND`
 
 > Le script d'installation généré par l'application PhotoCall détecte automatiquement les ports occupés et choisit ce mode tout seul, en affichant le bloc de configuration à copier.
 
+## Pas de reverse proxy, ou pas la main dessus ?
+
+Trois options, de la plus simple à la plus lourde :
+
+1. **Ports internes alternatifs + redirection de box/pare-feu** (serveur à la maison, typiquement) : ce qui compte pour le HTTPS automatique, c'est que les ports **80/443 publics** arrivent à Caddy — pas les ports locaux de la machine. Dans le `.env`, mettez :
+   ```env
+   HTTP_PORT=8080
+   HTTPS_PORT=8443
+   ```
+   puis, sur la box/le routeur, redirigez le port externe **80 → 8080** et **443 → 8443** vers la machine, et relancez `docker compose up -d`. Caddy obtient son certificat normalement, l'URL reste `https://votre-domaine` sans port. Condition : les 80/443 **publics** ne servent pas déjà un autre site.
+
+2. **Cloudflare Tunnel** (aucun port à ouvrir du tout) : si le domaine est géré par Cloudflare, `cloudflared` établit un tunnel sortant vers la galerie (`docker compose -f docker-compose.proxy.yml up -d`, puis un tunnel vers `http://127.0.0.1:3000`). Gratuit, mais dépend de Cloudflare.
+
+3. **Rester sur Vercel** : si ni les ports publics ni un proxy ne sont accessibles, l'hébergement cloud reste la solution sans friction — c'est exactement son cas d'usage.
+
 ## Remplir le `.env`
 
 | Variable | Valeur |

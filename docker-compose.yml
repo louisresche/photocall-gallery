@@ -11,9 +11,11 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
+    # Ports hôte configurables si 80/443 sont pris localement : mettez HTTP_PORT/HTTPS_PORT
+    # dans .env et faites suivre 80→HTTP_PORT et 443→HTTPS_PORT sur la box/le pare-feu (voir VPS.md)
     ports:
-      - "80:80"
-      - "443:443"
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
     environment:
       - DOMAIN=${DOMAIN}
     volumes:

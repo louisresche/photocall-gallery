@@ -65,6 +65,18 @@ app.post('/api/admin/refresh-token', (req, res) => {
   return res.json({ ok: true })
 })
 
+// L'app PhotoCall pousse la configuration SMTP (Gmail…) — stockée dans le volume, prime sur le .env
+app.post('/api/admin/email', (req, res) => {
+  if (!ADMIN_TOKEN) return res.status(503).json({ error: 'ADMIN_TOKEN non configuré sur le serveur' })
+  if (req.headers.authorization !== `Bearer ${ADMIN_TOKEN}`) return res.status(401).json({ error: 'Unauthorized' })
+  const { smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom } = req.body as Record<string, unknown>
+  if (!smtpHost || !smtpUser || !smtpPass) return res.status(400).json({ error: 'smtpHost, smtpUser et smtpPass requis' })
+  mkdirSync(DATA_DIR, { recursive: true })
+  writeFileSync(join(DATA_DIR, 'email.json'), JSON.stringify({ smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom }), { mode: 0o600 })
+  console.log('[admin] configuration email mise à jour')
+  return res.json({ ok: true })
+})
+
 // SPA : fichiers statiques puis fallback sur index.html (routes /g/:sessionId, /expired…)
 app.use(express.static(DIST, { maxAge: '1h', index: false }))
 app.get('*', (_req, res) => {

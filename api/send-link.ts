@@ -1,4 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { existsSync, readFileSync } from 'node:fs'
+
+// En autohébergé, la config SMTP poussée par l'app PhotoCall (data/email.json)
+// prime sur les variables d'environnement. Sur Vercel, le fichier n'existe pas.
+function getEmailOverride(): { smtpHost: string; smtpPort?: number; smtpUser: string; smtpPass: string; smtpFrom?: string } | null {
+  try {
+    const file = process.env.DATA_DIR ? `${process.env.DATA_DIR}/email.json` : 'data/email.json'
+    if (existsSync(file)) return JSON.parse(readFileSync(file, 'utf-8'))
+  } catch { /* fallback env */ }
+  return null
+}
 
 function cors(res: VercelResponse): void {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -15,15 +26,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { to, galleryUrl, eventName, contactEmail } = req.body as { to: string; galleryUrl: string; eventName: string; contactEmail?: string }
   if (!to || !galleryUrl) return res.status(400).json({ error: 'Missing params' })
 
-  const apiKey = process.env.RESEND_API_KEY
-  const smtpHost = process.env.SMTP_HOST
+  const override = getEmailOverride()
+  const apiKey = override ? '' : process.env.RESEND_API_KEY
+  const smtpHost = override?.smtpHost || process.env.SMTP_HOST
+  const smtpPort = Number(override?.smtpPort || process.env.SMTP_PORT || 587)
+  const smtpUser = override?.smtpUser || process.env.SMTP_USER
+  const smtpPass = override?.smtpPass || process.env.SMTP_PASS
   if (!apiKey && !smtpHost) {
     return res.status(503).json({
       error: 'Email non configuré. Ajoutez RESEND_API_KEY ou SMTP_HOST dans les variables d\'environnement.'
     })
   }
 
-  const from = process.env.RESEND_FROM || process.env.SMTP_FROM || 'PhotoCall <noreply@resend.dev>'
+  const from = override?.smtpFrom || process.env.RESEND_FROM || process.env.SMTP_FROM || 'PhotoCall <noreply@resend.dev>'
 
   const html = `
     <div style="font-family:system-ui,sans-serif;max-width:500px;margin:0 auto;padding:32px">
@@ -54,14 +69,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(500).json({ error: err })
       }
     } else {
-      // SMTP classique (autohébergé ou n'importe quel fournisseur : OVH, Gmail, Brevo…)
+      // SMTP classique (Gmail, OVH, Brevo…), via l'override poussé par l'app ou les variables d'env
       const { default: nodemailer } = await import('nodemailer')
-      const port = Number(process.env.SMTP_PORT ?? 587)
       const transport = nodemailer.createTransport({
         host: smtpHost,
-        port,
-        secure: port === 465,
-        auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS } : undefined
+        port: smtpPort,
+        secure: smtpPort === 465,
+        auth: smtpUser ? { user: smtpUser, pass: smtpPass } : undefined
       })
       await transport.sendMail({ from, to, subject, html, text })
     }

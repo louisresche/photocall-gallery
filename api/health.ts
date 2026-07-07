@@ -1,4 +1,7 @@
+import { existsSync } from 'node:fs'
+
 export default (_req: any, res: any) => {
+  const emailFile = process.env.DATA_DIR ? `${process.env.DATA_DIR}/email.json` : 'data/email.json'
   res.json({
     ok: true,
     node: process.version,
@@ -7,6 +10,6 @@ export default (_req: any, res: any) => {
     hasClientSecret: !!process.env.GOOGLE_OAUTH_CLIENT_SECRET,
     hasRefreshToken: !!process.env.GOOGLE_OAUTH_REFRESH_TOKEN,
     hasResendKey: !!process.env.RESEND_API_KEY,
-    hasSmtp: !!process.env.SMTP_HOST
+    hasSmtp: !!process.env.SMTP_HOST || existsSync(emailFile)
   })
 }

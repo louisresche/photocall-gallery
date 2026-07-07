@@ -44,6 +44,39 @@ export async function driveResolveManifestId(sessionId: string): Promise<string 
   return null
 }
 
+const NOTIF_FOLDER = 'photocall-notifications'
+
+// Dépose une demande de notification (JSON) dans le dossier photocall-notifications à la racine du Drive
+export async function driveSaveNotifyRequest(content: object, sessionId: string): Promise<void> {
+  const accessToken = await getAccessToken()
+  const folders = await driveList(
+    `name = '${NOTIF_FOLDER}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+    accessToken
+  )
+  let folderId = folders[0]?.id
+  if (!folderId) {
+    const res = await fetch('https://www.googleapis.com/drive/v3/files', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: NOTIF_FOLDER, mimeType: 'application/vnd.google-apps.folder', parents: ['root'] })
+    })
+    if (!res.ok) throw new Error(`Drive error ${res.status}: ${await res.text()}`)
+    folderId = (await res.json() as { id: string }).id
+  }
+
+  const boundary = `photocall${Date.now()}`
+  const meta = JSON.stringify({ name: `notif-${sessionId}-${Date.now()}.json`, parents: [folderId], mimeType: 'application/json' })
+  const body =
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n` +
+    `--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(content)}\r\n--${boundary}--`
+  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': `multipart/related; boundary=${boundary}` },
+    body
+  })
+  if (!res.ok) throw new Error(`Drive error ${res.status}: ${await res.text()}`)
+}
+
 export async function driveGetJson(fileId: string): Promise<any> {
   const token = await getAccessToken()
   const res = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`, {

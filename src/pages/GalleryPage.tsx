@@ -2,6 +2,7 @@ import { useSearchParams, useParams, useNavigate } from 'react-router-dom'
 import { useGallery } from '../hooks/useGallery'
 import PhotoGrid from '../components/PhotoGrid'
 import DownloadButton from '../components/DownloadButton'
+import NotifyForm from '../components/NotifyForm'
 import { useEffect, useState, type FormEvent } from 'react'
 
 export default function GalleryPage() {
@@ -38,10 +39,11 @@ export default function GalleryPage() {
   // Session pas encore synchronisée (créée hors ligne) : les photos arrivent avec la connexion
   if (notReady && !manifest) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9fa' }}>
-      <div style={{ textAlign: 'center', color: '#9aa0a6' }}>
+      <div style={{ textAlign: 'center', color: '#9aa0a6', padding: '0 1.5rem' }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>📷</div>
         <div style={{ fontSize: 16, color: '#5f6368' }}>Les photos arrivent bientôt…</div>
         <div style={{ fontSize: 13, marginTop: 8 }}>Cette page se rafraîchit automatiquement</div>
+        <NotifyForm sessionId={sessionId!} token={token} />
       </div>
     </div>
   )
@@ -123,6 +125,7 @@ export default function GalleryPage() {
             <div style={{ fontSize: 48, marginBottom: 16 }}>📷</div>
             <div style={{ fontSize: 16 }}>Les photos arrivent bientôt…</div>
             <div style={{ fontSize: 13, marginTop: 8 }}>Cette page se rafraîchit automatiquement</div>
+            <NotifyForm sessionId={sessionId!} token={token} />
           </div>
         ) : (
           <PhotoGrid photos={manifest.photos} token={token} mfid={mfid} />

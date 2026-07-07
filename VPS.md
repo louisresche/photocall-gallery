@@ -20,6 +20,36 @@ docker compose up -d --build
 
 C'est tout : Caddy obtient le certificat HTTPS tout seul au premier accès. Vérifiez `https://votre-domaine/api/health` — tous les indicateurs utiles doivent être `true`.
 
+## Serveur avec des services déjà en place (ports 80/443 occupés)
+
+Si un reverse proxy (Nginx, Apache, Caddy, Traefik, Nginx Proxy Manager…) écoute déjà sur 80/443, ne lancez **pas** Caddy : démarrez la galerie seule, exposée en local sur le port 3000 :
+
+```bash
+docker compose -f docker-compose.proxy.yml up -d --build
+```
+
+Puis ajoutez la route dans votre proxy existant (c'est lui qui gère le HTTPS) :
+
+**Nginx :**
+```nginx
+server {
+    server_name galerie.mondomaine.com;
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+    }
+}
+```
+puis `certbot --nginx -d galerie.mondomaine.com`
+
+**Caddy existant :** `galerie.mondomaine.com { reverse_proxy 127.0.0.1:3000 }`
+
+**Nginx Proxy Manager / Traefik conteneurisés :** le port est publié sur `127.0.0.1` par défaut ; si votre proxy tourne dans Docker, mettez `GALLERY_BIND=0.0.0.0` dans le `.env` (et pare-feu sur le port 3000) ou raccordez les réseaux Docker.
+
+Variables optionnelles du `.env` : `GALLERY_PORT` (défaut 3000), `GALLERY_BIND` (défaut 127.0.0.1).
+
+> Le script d'installation généré par l'application PhotoCall détecte automatiquement les ports occupés et choisit ce mode tout seul, en affichant le bloc de configuration à copier.
+
 ## Remplir le `.env`
 
 | Variable | Valeur |
@@ -59,13 +89,15 @@ Derrière n'importe quel reverse proxy HTTPS (Caddy, Nginx + certbot).
 
 ## Dépannage
 
-**« address already in use » sur le port 80 ou 443 au démarrage de Caddy** : le VPS a un serveur web préinstallé (Apache ou Nginx, fréquent chez IONOS, OVH…). Identifiez-le puis désactivez-le :
+**« address already in use » / « port is already allocated » sur 80 ou 443 au démarrage de Caddy** : un autre serveur web occupe les ports. Deux cas :
 
-```bash
-ss -tlnp | grep -E ':80 |:443 '
-systemctl disable --now apache2    # ou nginx
-docker compose up -d
-```
+- Le serveur héberge d'autres services derrière un reverse proxy → utilisez le mode « ports occupés » ci-dessus (`docker compose -f docker-compose.proxy.yml up -d`), après avoir arrêté le Caddy en échec : `docker compose down`.
+- C'est juste un Apache/Nginx préinstallé et inutilisé (fréquent chez IONOS, OVH…) → désactivez-le puis relancez :
+  ```bash
+  ss -tlnp | grep -E ':80 |:443 '
+  systemctl disable --now apache2    # ou nginx
+  docker compose up -d
+  ```
 
 **Le certificat HTTPS ne s'obtient pas** : vérifiez que le DNS du domaine pointe bien vers l'IP du VPS (`dig +short votre-domaine`) et que les ports 80/443 sont ouverts dans le pare-feu du fournisseur.
 

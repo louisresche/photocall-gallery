@@ -1,0 +1,13 @@
+# Mode « derrière un reverse proxy existant » : la galerie seule, sans Caddy.
+# À utiliser quand les ports 80/443 sont déjà pris (Nginx, Apache, Traefik, NPM…) :
+#   docker compose -f docker-compose.proxy.yml up -d --build
+# Puis faites pointer votre proxy vers http://127.0.0.1:3000 (voir VPS.md).
+services:
+  gallery:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "${GALLERY_BIND:-127.0.0.1}:${GALLERY_PORT:-3000}:3000"

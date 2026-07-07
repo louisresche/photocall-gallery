@@ -16,6 +16,7 @@ services:
       - "${GALLERY_BIND:-127.0.0.1}:${GALLERY_PORT:-3000}:3000"
     labels:
       - com.centurylinklabs.watchtower.enable=true
+      - com.centurylinklabs.watchtower.scope=photocall
 
   watchtower:
     profiles: ["autoupdate"]
@@ -23,4 +24,6 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: --label-enable --interval 86400 --cleanup
+    labels:
+      - com.centurylinklabs.watchtower.scope=photocall
+    command: --label-enable --interval 86400 --cleanup --scope photocall

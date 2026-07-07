@@ -102,7 +102,11 @@ Dans **Options → Galerie en ligne** :
 
 **Automatiques (recommandé)** : à chaque mise à jour du repo, GitHub Actions publie une image précompilée (`ghcr.io/louisresche/photocall-gallery:latest`). La stack par défaut inclut **Watchtower**, qui vérifie chaque jour et met la galerie à jour toute seule — rien à faire.
 
-Avec les fichiers `proxy` ou `traefik`, ajoutez `--profile autoupdate` au `up -d` pour activer Watchtower (sauf si un Watchtower tourne déjà sur l'hôte — il suffit alors du label déjà présent sur le conteneur).
+Avec les fichiers `proxy` ou `traefik`, ajoutez `--profile autoupdate` au `up -d` pour activer Watchtower.
+
+**Serveur avec un Watchtower déjà en place :** aucun conflit — le Watchtower de la galerie est isolé dans son propre scope (`photocall`) : il ne touche que le conteneur de la galerie, ignore vos autres conteneurs et ne supprime pas votre instance existante (comportement multi-instances officiel de Watchtower). Deux cas :
+- votre Watchtower surveille *tous* les conteneurs (mode par défaut, sans `--label-enable`) → il mettra aussi la galerie à jour ; inutile d'activer le profil `autoupdate` ;
+- votre Watchtower est en `--label-enable` → le label `enable=true` est déjà posé sur la galerie, il la couvrira aussi. Sinon, activez le profil `autoupdate` pour avoir l'instance scopée dédiée.
 
 **Manuelles** :
 ```bash

@@ -1,7 +1,22 @@
+import { existsSync, readFileSync } from 'node:fs'
+
+// En autohébergé, le jeton poussé par l'app PhotoCall (data/refresh-token) prime
+// sur la variable d'environnement. Sur Vercel, le fichier n'existe pas.
+function getRefreshToken(): string | undefined {
+  try {
+    const file = process.env.DATA_DIR ? `${process.env.DATA_DIR}/refresh-token` : 'data/refresh-token'
+    if (existsSync(file)) {
+      const token = readFileSync(file, 'utf-8').trim()
+      if (token) return token
+    }
+  } catch { /* fallback env */ }
+  return process.env.GOOGLE_OAUTH_REFRESH_TOKEN
+}
+
 async function getAccessToken(): Promise<string> {
   const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID
   const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET
-  const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN
+  const refreshToken = getRefreshToken()
 
   if (!clientId || !clientSecret || !refreshToken) {
     throw new Error('Variables OAuth manquantes (GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, GOOGLE_OAUTH_REFRESH_TOKEN)')

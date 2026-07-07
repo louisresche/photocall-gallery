@@ -20,6 +20,10 @@ vercel login
 vercel --prod
 ```
 
+## Autohébergement sur VPS
+
+La galerie se déploie aussi sur votre propre serveur avec Docker + HTTPS automatique — sans les limites du plan gratuit Vercel (bande passante, usage non commercial, durée des fonctions). Voir **[VPS.md](VPS.md)**.
+
 ## Variables d'environnement
 
 Configurées automatiquement par l'application PhotoCall (ou manuellement dans le dashboard Vercel) :

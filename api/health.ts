@@ -6,6 +6,7 @@ export default (_req: any, res: any) => {
     hasClientId: !!process.env.GOOGLE_OAUTH_CLIENT_ID,
     hasClientSecret: !!process.env.GOOGLE_OAUTH_CLIENT_SECRET,
     hasRefreshToken: !!process.env.GOOGLE_OAUTH_REFRESH_TOKEN,
-    hasResendKey: !!process.env.RESEND_API_KEY
+    hasResendKey: !!process.env.RESEND_API_KEY,
+    hasSmtp: !!process.env.SMTP_HOST
   })
 }

@@ -1,9 +1,12 @@
 # Mode « derrière un reverse proxy existant » : la galerie seule, sans Caddy.
 # À utiliser quand les ports 80/443 sont déjà pris (Nginx, Apache, Traefik, NPM…) :
-#   docker compose -f docker-compose.proxy.yml up -d --build
+#   docker compose -f docker-compose.proxy.yml up -d
 # Puis faites pointer votre proxy vers http://127.0.0.1:3000 (voir VPS.md).
+# Mises à jour automatiques (si pas déjà un Watchtower sur l'hôte) :
+#   docker compose -f docker-compose.proxy.yml --profile autoupdate up -d
 services:
   gallery:
+    image: ghcr.io/louisresche/photocall-gallery:latest
     build: .
     restart: unless-stopped
     env_file: .env
@@ -11,3 +14,13 @@ services:
       - ./data:/app/data
     ports:
       - "${GALLERY_BIND:-127.0.0.1}:${GALLERY_PORT:-3000}:3000"
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+
+  watchtower:
+    profiles: ["autoupdate"]
+    image: containrrr/watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --label-enable --interval 86400 --cleanup

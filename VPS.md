@@ -98,13 +98,20 @@ Dans **Options → Galerie en ligne** :
 
 À chaque reconnexion de Google Drive, l'app renverra automatiquement le nouveau jeton au serveur (stocké dans le volume `./data/`, il survit aux redémarrages et prime sur le `.env`).
 
-## Mise à jour
+## Mises à jour
 
+**Automatiques (recommandé)** : à chaque mise à jour du repo, GitHub Actions publie une image précompilée (`ghcr.io/louisresche/photocall-gallery:latest`). La stack par défaut inclut **Watchtower**, qui vérifie chaque jour et met la galerie à jour toute seule — rien à faire.
+
+Avec les fichiers `proxy` ou `traefik`, ajoutez `--profile autoupdate` au `up -d` pour activer Watchtower (sauf si un Watchtower tourne déjà sur l'hôte — il suffit alors du label déjà présent sur le conteneur).
+
+**Manuelles** :
 ```bash
 cd photocall-gallery
-git pull
-docker compose up -d --build
+git pull                # récupère les éventuels nouveaux fichiers compose
+docker compose pull && docker compose up -d
 ```
+
+**Compiler depuis les sources** (au lieu de l'image précompilée) : `docker compose up -d --build`.
 
 ## Sans Docker (alternative)
 

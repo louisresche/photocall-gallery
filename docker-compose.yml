@@ -1,5 +1,8 @@
 services:
   gallery:
+    # Image précompilée publiée à chaque mise à jour du repo (Watchtower la suit).
+    # Pour compiler depuis les sources à la place : docker compose up -d --build
+    image: ghcr.io/louisresche/photocall-gallery:latest
     build: .
     restart: unless-stopped
     env_file: .env
@@ -7,6 +10,8 @@ services:
       - ./data:/app/data
     expose:
       - "3000"
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
 
   caddy:
     image: caddy:2-alpine
@@ -22,6 +27,14 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+
+  # Mises à jour automatiques : vérifie une nouvelle image chaque jour
+  watchtower:
+    image: containrrr/watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --label-enable --interval 86400 --cleanup
 
 volumes:
   caddy_data:

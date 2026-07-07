@@ -27,7 +27,7 @@ export default function GalleryPage() {
       setEmailState(r.ok ? 'sent' : 'error')
       if (r.ok) {
         setEmailInput('')
-        setTimeout(() => setEmailState('idle'), 3000)
+        setTimeout(() => setEmailState('idle'), 8000)
       }
     } catch { setEmailState('error') }
   }
@@ -113,6 +113,11 @@ export default function GalleryPage() {
             </form>
             {emailState === 'error' && (
               <div style={{ fontSize: 13, color: '#c5221f' }}>Erreur lors de l'envoi. Réessayez.</div>
+            )}
+            {emailState === 'sent' ? (
+              <div style={{ fontSize: 13, color: '#137333' }}>Email envoyé — pensez à consulter vos spams.</div>
+            ) : (
+              <div style={{ fontSize: 11, color: '#bdc1c6' }}>Pensez à consulter vos spams à réception.</div>
             )}
           </div>
         )}

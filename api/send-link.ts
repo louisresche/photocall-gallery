@@ -40,18 +40,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const from = override?.smtpFrom || process.env.RESEND_FROM || process.env.SMTP_FROM || 'PhotoCall <noreply@resend.dev>'
 
+  const esc = (s: string) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const safeName = esc(eventName || 'Votre événement')
+
   const html = `
-    <div style="font-family:system-ui,sans-serif;max-width:500px;margin:0 auto;padding:32px">
-      <h2 style="margin:0 0 8px;font-size:24px;color:#202124">${eventName}</h2>
-      <p style="color:#5f6368;margin:0 0 24px">Vos photos sont prêtes !</p>
-      <a href="${galleryUrl}"
-         style="display:inline-block;padding:12px 28px;background:#202124;color:white;text-decoration:none;border-radius:24px;font-weight:600;font-size:15px">
-        Voir mes photos →
-      </a>
-      <p style="margin:24px 0 0;font-size:12px;color:#9aa0a6;word-break:break-all">
-        Lien : ${galleryUrl}
-      </p>
-      ${contactEmail ? `<p style="margin:16px 0 0;font-size:12px;color:#9aa0a6">En cas de problème avec vos photos, contactez : <a href="mailto:${contactEmail}" style="color:#5f6368">${contactEmail}</a></p>` : ''}
+    <div style="background:#f4f5f7;padding:32px 16px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
+      <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e8eaed">
+        <div style="background:#202124;padding:30px 32px;text-align:center">
+          <div style="font-size:36px;line-height:1">&#128248;</div>
+          <h1 style="color:#ffffff;font-size:22px;font-weight:800;margin:10px 0 0;letter-spacing:-0.3px">${safeName}</h1>
+        </div>
+        <div style="padding:32px;text-align:center">
+          <p style="font-size:17px;font-weight:700;color:#202124;margin:0 0 6px">Vos photos sont pr&ecirc;tes !</p>
+          <p style="font-size:14px;color:#5f6368;line-height:1.6;margin:0 0 26px">
+            Retrouvez toutes les photos de l'&eacute;v&eacute;nement dans votre galerie priv&eacute;e :
+            visualisez-les, t&eacute;l&eacute;chargez-les une par une ou toutes d'un coup.
+          </p>
+          <a href="${galleryUrl}"
+             style="display:inline-block;padding:14px 36px;background:#202124;color:#ffffff;text-decoration:none;border-radius:28px;font-weight:700;font-size:15px">
+            Voir mes photos &rarr;
+          </a>
+          <p style="margin:26px 0 0;font-size:11px;color:#9aa0a6;line-height:1.6;word-break:break-all">
+            Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
+            <a href="${galleryUrl}" style="color:#5f6368">${galleryUrl}</a>
+          </p>
+        </div>
+        <div style="border-top:1px solid #f1f3f4;padding:18px 32px;text-align:center">
+          ${contactEmail ? `<p style="margin:0 0 6px;font-size:12px;color:#9aa0a6">Un probl&egrave;me avec vos photos ? Contactez <a href="mailto:${esc(contactEmail)}" style="color:#5f6368">${esc(contactEmail)}</a></p>` : ''}
+          <p style="margin:0;font-size:11px;color:#bdc1c6">Envoy&eacute; par PhotoCall &middot; la galerie expire automatiquement apr&egrave;s l'&eacute;v&eacute;nement</p>
+        </div>
+      </div>
     </div>`
 
   const subject = `Vos photos - ${eventName}`

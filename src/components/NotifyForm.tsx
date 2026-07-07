@@ -24,6 +24,7 @@ export default function NotifyForm({ sessionId, token }: Props) {
   if (state === 'sent') return (
     <div style={{ marginTop: 24, fontSize: 14, color: '#137333' }}>
       ✓ C'est noté ! Vous recevrez un email dès que vos photos seront en ligne.
+      <div style={{ fontSize: 12, color: '#9aa0a6', marginTop: 6 }}>Pensez à consulter vos spams.</div>
     </div>
   )
 
@@ -52,6 +53,7 @@ export default function NotifyForm({ sessionId, token }: Props) {
       {state === 'error' && (
         <div style={{ fontSize: 13, color: '#c5221f', marginTop: 8 }}>Erreur lors de l'envoi. Réessayez.</div>
       )}
+      <div style={{ fontSize: 11, color: '#bdc1c6', marginTop: 8 }}>Pensez à consulter vos spams à réception.</div>
     </form>
   )
 }

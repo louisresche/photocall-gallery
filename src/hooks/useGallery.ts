@@ -11,6 +11,7 @@ export function useGallery(sessionId: string, token: string, mfidFromUrl: string
   const mfid = mfidFromUrl || manifest?.mfid || ''
 
   async function fetchManifest() {
+    if (!token) return // la page affiche le formulaire de code d'accès
     try {
       const res = await fetch(`/api/gallery/${sessionId}?token=${token}${mfid ? `&mfid=${mfid}` : ''}`)
       if (res.status === 410) { setExpired(true); return }

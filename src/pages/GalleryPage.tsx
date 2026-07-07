@@ -33,8 +33,54 @@ export default function GalleryPage() {
   }
 
   const { manifest, expired, notReady, error, mfid } = useGallery(sessionId!, token, mfidParam)
+  const [codeInput, setCodeInput] = useState('')
 
   useEffect(() => { if (expired) nav('/expired') }, [expired])
+
+  function submitCode(e: FormEvent) {
+    e.preventDefault()
+    // Le code du ticket est le token, éventuellement tapé avec tirets/espaces/majuscules
+    const clean = codeInput.replace(/[^0-9a-f]/gi, '').toLowerCase()
+    if (clean) nav(`/g/${sessionId}?token=${clean}${mfidParam ? `&mfid=${mfidParam}` : ''}`)
+  }
+
+  // URL tapée à la main (sans token) : demander le code d'accès imprimé sur le ticket
+  if (!token) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9fa', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div style={{ textAlign: 'center', padding: '2rem 1.5rem', maxWidth: 420 }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🔑</div>
+        <h1 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 800, color: '#202124' }}>Code d'accès</h1>
+        <p style={{ color: '#5f6368', fontSize: 14, lineHeight: 1.6, margin: '0 0 20px' }}>
+          Saisissez le code imprimé sur votre ticket (ligne « Code : … ») pour ouvrir la galerie <b>{sessionId}</b>.
+        </p>
+        <form onSubmit={submitCode} style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <input
+            value={codeInput}
+            onChange={e => setCodeInput(e.target.value)}
+            placeholder="a1b2-c3d4-e5f6-a7b8"
+            autoFocus
+            style={{ border: '1.5px solid #dadce0', borderRadius: 24, padding: '10px 18px', fontSize: 15, outline: 'none', width: 220, textAlign: 'center', fontFamily: 'monospace', letterSpacing: 1 }}
+          />
+          <button type="submit" style={{ padding: '10px 22px', borderRadius: 24, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, background: '#202124', color: 'white' }}>
+            Ouvrir
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+
+  // Code d'accès incorrect (tapé à la main) : proposer de réessayer
+  if (error === 'Erreur 403') return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9fa', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div style={{ textAlign: 'center', padding: '2rem 1.5rem' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
+        <div style={{ fontSize: 16, color: '#5f6368', marginBottom: 20 }}>Code d'accès incorrect pour la galerie {sessionId}.</div>
+        <button onClick={() => nav(`/g/${sessionId}`)} style={{ padding: '10px 22px', borderRadius: 24, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, background: '#202124', color: 'white' }}>
+          Réessayer
+        </button>
+      </div>
+    </div>
+  )
 
   // Session pas encore synchronisée (créée hors ligne) : les photos arrivent avec la connexion
   if (notReady && !manifest) return (

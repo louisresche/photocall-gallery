@@ -13,6 +13,14 @@ function getRefreshToken(): string | undefined {
   return process.env.GOOGLE_OAUTH_REFRESH_TOKEN
 }
 
+// Expiration contraignante : le drapeau posé par l'app OU la date dépassée
+// (couvre le cas où l'app n'est jamais relancée après le délai de rétention)
+export function manifestExpired(manifest: any): boolean {
+  if (manifest?.expired) return true
+  const t = manifest?.expiresAt ? Date.parse(manifest.expiresAt) : NaN
+  return Number.isFinite(t) && Date.now() > t
+}
+
 async function getAccessToken(): Promise<string> {
   const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID
   const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET

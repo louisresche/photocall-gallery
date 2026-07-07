@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { driveGetJson, driveGetBuffer, driveResolveManifestId } from '../_drive.js'
+import { driveGetJson, driveGetBuffer, driveResolveManifestId, manifestExpired } from '../_drive.js'
 import archiver from 'archiver'
 import { Readable } from 'stream'
 
@@ -22,6 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const manifest = await driveGetJson(manifestId)
     if (manifest.sessionId !== String(id) || manifest.token !== String(token)) return res.status(403).json({ error: 'Invalid token' })
+    if (manifestExpired(manifest)) return res.status(410).json({ error: 'expired' })
 
     const filename = `${slugify(manifest.eventName)}-${String(id)}.zip`
     res.setHeader('Content-Type', 'application/zip')

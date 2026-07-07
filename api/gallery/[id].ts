@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { driveGetJson, driveResolveManifestId } from '../_drive.js'
+import { driveGetJson, driveResolveManifestId, manifestExpired } from '../_drive.js'
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { id, token, mfid } = req.query
@@ -17,7 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (manifest.sessionId !== String(id) || manifest.token !== String(token)) {
       return res.status(403).json({ error: 'Invalid token' })
     }
-    if (manifest.expired) return res.status(410).json({ error: 'expired', manifest })
+    if (manifestExpired(manifest)) return res.status(410).json({ error: 'expired' })
     res.setHeader('Cache-Control', 'no-store')
     return res.status(200).json({ ...manifest, mfid: manifestId })
   } catch (err: any) {

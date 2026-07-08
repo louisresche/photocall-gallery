@@ -10,8 +10,7 @@
     }
   ],
   "rewrites": [
-    { "source": "/g/:sessionId", "destination": "/index.html" },
-    { "source": "/", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "functions": {
     "api/download/[id].ts": { "maxDuration": 60 }

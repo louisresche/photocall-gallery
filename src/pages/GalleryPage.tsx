@@ -39,8 +39,10 @@ export default function GalleryPage() {
 
   function submitCode(e: FormEvent) {
     e.preventDefault()
-    // Le code du ticket est le token, éventuellement tapé avec tirets/espaces/majuscules
-    const clean = codeInput.replace(/[^0-9a-f]/gi, '').toLowerCase()
+    // Le code du ticket est le token, tapé avec ou sans tirets/espaces.
+    // Nouveaux codes : 8 caractères majuscules ; anciens : 16 caractères hexadécimaux minuscules.
+    const raw = codeInput.replace(/[^0-9a-z]/gi, '')
+    const clean = raw.length > 12 ? raw.toLowerCase() : raw.toUpperCase()
     if (clean) nav(`/g/${sessionId}?token=${clean}${mfidParam ? `&mfid=${mfidParam}` : ''}`)
   }
 
@@ -57,7 +59,7 @@ export default function GalleryPage() {
           <input
             value={codeInput}
             onChange={e => setCodeInput(e.target.value)}
-            placeholder="a1b2-c3d4-e5f6-a7b8"
+            placeholder="A7K9-P2M4"
             autoFocus
             style={{ border: '1.5px solid #dadce0', borderRadius: 24, padding: '10px 18px', fontSize: 15, outline: 'none', width: 220, textAlign: 'center', fontFamily: 'monospace', letterSpacing: 1 }}
           />

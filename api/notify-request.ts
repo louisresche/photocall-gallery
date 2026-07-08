@@ -11,7 +11,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { sessionId, token, email } = req.body as { sessionId?: string; token?: string; email?: string }
   if (!sessionId || !token || !email) return res.status(400).json({ error: 'Missing params' })
   if (!/^[A-Za-z0-9]{4,12}$/.test(sessionId)) return res.status(400).json({ error: 'Invalid sessionId' })
-  if (!/^[0-9a-f]{8,64}$/.test(token)) return res.status(400).json({ error: 'Invalid token' })
+  if (!/^[0-9A-Za-z]{6,64}$/.test(token)) return res.status(400).json({ error: 'Invalid token' })
   if (email.length > 120 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Invalid email' })
 
   try {

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 // Accueil : les invités tapent le numéro à 6 caractères de leur ticket
 export default function HomePage() {
@@ -47,6 +47,11 @@ export default function HomePage() {
         </form>
         <p style={{ color: '#bdc1c6', fontSize: 12, marginTop: 20 }}>
           Le code d'accès vous sera demandé à l'étape suivante.
+        </p>
+        <p style={{ fontSize: 11, marginTop: 28 }}>
+          <Link to="/confidentialite" style={{ color: '#bdc1c6' }}>Confidentialité</Link>
+          <span style={{ color: '#dadce0', margin: '0 8px' }}>·</span>
+          <Link to="/conditions" style={{ color: '#bdc1c6' }}>Conditions d'utilisation</Link>
         </p>
       </div>
     </div>

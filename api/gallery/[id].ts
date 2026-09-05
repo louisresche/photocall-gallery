@@ -7,13 +7,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     // mfid optionnel : les QR imprimés hors ligne n'en ont pas — on résout par recherche Drive
-    const manifestId = mfid ? String(mfid) : await driveResolveManifestId(String(id))
-    if (!manifestId) {
+    let manifestId = mfid ? String(mfid) : await driveResolveManifestId(String(id))
+
+    let manifest: any = null
+    if (manifestId) {
+      try {
+        manifest = await driveGetJson(manifestId)
+      } catch {
+        manifest = null
+      }
+    }
+
+    // mfid périmé (manifest recréé côté app) ou fichier illisible : retomber sur la
+    // recherche par dossier Drive — même chemin que l'accès par code du ticket
+    if (mfid && (!manifest || manifest.sessionId !== String(id))) {
+      const resolved = await driveResolveManifestId(String(id))
+      if (resolved && resolved !== manifestId) {
+        manifestId = resolved
+        try { manifest = await driveGetJson(resolved) } catch { manifest = null }
+      }
+    }
+
+    if (!manifest) {
       res.setHeader('Cache-Control', 'no-store')
       return res.status(404).json({ error: 'not-ready' })
     }
-
-    const manifest = await driveGetJson(manifestId)
     if (manifest.sessionId !== String(id) || manifest.token !== String(token)) {
       return res.status(403).json({ error: 'Invalid token' })
     }

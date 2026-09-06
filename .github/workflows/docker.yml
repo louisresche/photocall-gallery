@@ -1,5 +1,10 @@
 # À chaque push sur main : construit l'image et la publie sur GHCR.
 # Les galeries autohébergées (Watchtower) se mettent alors à jour automatiquement.
+#
+# Chaque architecture est construite sur un runner natif (amd64 et arm64),
+# puis les deux sont fusionnées en une image multi-arch. L'ancienne méthode
+# (émulation QEMU de l'arm64) plantait : `npm ci` crashait sous QEMU et le
+# job restait bloqué jusqu'à la limite de 6 h sans publier l'image.
 name: docker
 
 on:
@@ -10,23 +15,72 @@ permissions:
   contents: read
   packages: write
 
+env:
+  IMAGE: ghcr.io/louisresche/photocall-gallery
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
+      - name: Nom de plateforme sans slash (pour l'artefact)
+        run: |
+          platform="${{ matrix.platform }}"
+          echo "PLATFORM_PAIR=${platform//\//-}" >> "$GITHUB_ENV"
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+      - id: build
+        uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ghcr.io/louisresche/photocall-gallery:latest
-            ghcr.io/louisresche/photocall-gallery:${{ github.sha }}
+          platforms: ${{ matrix.platform }}
+          # Pousse chaque variante par digest ; les tags sont posés par le job merge
+          outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+      - name: Exporter le digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge:
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fusionner les variantes et pousser les tags
+        working-directory: /tmp/digests
+        run: |
+          docker buildx imagetools create \
+            -t "$IMAGE:latest" \
+            -t "$IMAGE:${{ github.sha }}" \
+            $(printf "$IMAGE@sha256:%s " *)

@@ -27,9 +27,10 @@ export function PrivacyPage() {
   return (
     <LegalLayout title="Règles de confidentialité">
       <p>
-        PhotoCall est une application de photobooth événementiel : elle prend des photos lors d'un
-        événement (mariage, soirée, salon…) et permet aux invités de les retrouver en ligne via un
-        ticket imprimé. Cette page décrit quelles données sont traitées et comment.
+        SnapMe est une solution de photobooth événementiel : elle simplifie le travail des
+        photographes lors d'un événement (mariage, soirée, salon…) et permet aux invités de
+        retrouver leurs photos en ligne via un ticket imprimé ou par mail. Cette page décrit
+        quelles données sont traitées et comment.
       </p>
 
       <H2>Photos des invités</H2>
@@ -82,13 +83,13 @@ export function TermsPage() {
   return (
     <LegalLayout title="Conditions d'utilisation">
       <p>
-        En utilisant ce site de galerie photo, vous acceptez les conditions suivantes.
+        En utilisant SnapMe, vous acceptez les conditions suivantes :
       </p>
 
       <H2>Objet du service</H2>
       <p>
         Ce site permet aux invités d'un événement de consulter, télécharger et recevoir par email
-        les photos prises par le photobooth PhotoCall lors de cet événement. L'accès à une galerie
+        les photos prises via SnapMe lors de cet événement. L'accès à une galerie
         nécessite le numéro et le code d'accès imprimés sur le ticket remis pendant l'événement.
       </p>
 
@@ -110,7 +111,7 @@ export function TermsPage() {
 
       <H2>Responsabilité</H2>
       <p>
-        Le service est fourni « en l'état ». L'exploitant du photobooth ne saurait être tenu
+        Le service est fourni « en l'état ». L'exploitant de SnapMe ne saurait être tenu
         responsable d'une indisponibilité temporaire du site, de la perte de photos après la période
         de conservation annoncée, ou d'un usage des photos par des tiers à qui un invité aurait
         communiqué le code d'accès.

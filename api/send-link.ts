@@ -38,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     })
   }
 
-  const from = override?.smtpFrom || process.env.RESEND_FROM || process.env.SMTP_FROM || 'PhotoCall <noreply@resend.dev>'
+  const from = override?.smtpFrom || process.env.RESEND_FROM || process.env.SMTP_FROM || 'SnapMe <noreply@resend.dev>'
 
   const esc = (s: string) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   const safeName = esc(eventName || 'Votre événement')
@@ -67,7 +67,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         </div>
         <div style="border-top:1px solid #f1f3f4;padding:18px 32px;text-align:center">
           ${contactEmail ? `<p style="margin:0 0 6px;font-size:12px;color:#9aa0a6">Un probl&egrave;me avec vos photos ? Contactez <a href="mailto:${esc(contactEmail)}" style="color:#5f6368">${esc(contactEmail)}</a></p>` : ''}
-          <p style="margin:0;font-size:11px;color:#bdc1c6">Envoy&eacute; par PhotoCall &middot; la galerie expire automatiquement apr&egrave;s l'&eacute;v&eacute;nement</p>
+          <p style="margin:0;font-size:11px;color:#bdc1c6">Envoy&eacute; par SnapMe &middot; la galerie expire automatiquement apr&egrave;s l'&eacute;v&eacute;nement</p>
         </div>
       </div>
     </div>`

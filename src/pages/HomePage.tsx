@@ -14,7 +14,8 @@ export default function HomePage() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9fa', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <div style={{ textAlign: 'center', padding: '2rem 1.5rem', maxWidth: 420 }}>
-        <div style={{ fontSize: 52, marginBottom: 12 }}>📷</div>
+        <div style={{ fontSize: 52, marginBottom: 8 }}>📷</div>
+        <p style={{ margin: '0 0 14px', fontSize: 13, fontWeight: 800, letterSpacing: 3, textTransform: 'uppercase', color: '#9aa0a6' }}>SnapMe</p>
         <h1 style={{ margin: '0 0 8px', fontSize: 26, fontWeight: 800, color: '#202124', letterSpacing: -0.5 }}>
           Retrouvez vos photos
         </h1>

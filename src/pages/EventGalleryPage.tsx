@@ -112,7 +112,7 @@ export default function EventGalleryPage() {
           {manifest.eventName}
         </h1>
         <div style={{ color: '#9aa0a6', marginTop: 8, fontSize: 14 }}>
-          {createdAt} · {t('photoCount', { n: manifest.photos.length })}
+          {createdAt} · {t('photoCount', { n: manifest.photos.length })} · {t('sessionCount', { n: manifest.sessionCount })}
         </div>
 
         {manifest.photos.length > 0 && (

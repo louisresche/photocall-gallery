@@ -1,12 +1,20 @@
 // Enregistrement d'une photo depuis la galerie.
 //
-// Sur mobile, un lien `<a download>` range l'image dans « Fichiers », où les
-// invités ne la retrouvent pas. Le partage natif (navigator.share) ouvre la
-// feuille de partage du système, qui propose « Enregistrer l'image » / « Ajouter
-// aux photos » : la photo atterrit alors dans la pellicule.
+// Il n'existe aucune API web pour écrire directement dans la pellicule : selon la
+// plateforme, un chemin différent y mène.
 //
-// Le partage n'est utilisé que sur écran tactile : sur ordinateur, un
-// téléchargement classique reste ce que l'utilisateur attend.
+// • iOS : la feuille de partage native propose « Enregistrer l'image », qui range
+//   la photo dans la pellicule. Un simple lien de téléchargement, lui, la
+//   mettrait dans « Fichiers », où les invités ne la retrouvent pas.
+//
+// • Android : la feuille de partage ne liste que des applications vers qui
+//   partager, sans option d'enregistrement — d'où l'impression que le bouton ne
+//   fait rien. Le téléchargement classique, en revanche, dépose la photo dans
+//   « Téléchargements », dossier que MediaStore indexe : elle apparaît alors dans
+//   l'application Photos (album « Download »), et la notification de
+//   téléchargement confirme l'enregistrement à l'invité.
+//
+// • Ordinateur : téléchargement classique, ce que l'utilisateur attend.
 
 function downloadViaLink(url: string, filename: string): void {
   const a = document.createElement('a')
@@ -17,13 +25,17 @@ function downloadViaLink(url: string, filename: string): void {
   a.remove()
 }
 
-function prefersNativeShare(): boolean {
+function isAndroid(): boolean {
+  return /android/i.test(navigator.userAgent)
+}
+
+function canShareFiles(): boolean {
   if (typeof navigator === 'undefined' || !navigator.share || !navigator.canShare) return false
   return window.matchMedia?.('(pointer: coarse)').matches ?? false
 }
 
 export async function savePhoto(url: string, filename: string): Promise<void> {
-  if (!prefersNativeShare()) return downloadViaLink(url, filename)
+  if (isAndroid() || !canShareFiles()) return downloadViaLink(url, filename)
 
   try {
     const res = await fetch(url)

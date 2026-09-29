@@ -1,5 +1,8 @@
+import { useLang } from '../lib/i18n'
+
 interface Props { sessionId: string; token: string; mfid: string; eventName?: string }
 export default function DownloadButton({ sessionId, token, mfid }: Props) {
+  const { t } = useLang()
   return (
     <a
       href={`/api/download/${sessionId}?token=${token}&mfid=${mfid}`}
@@ -9,7 +12,7 @@ export default function DownloadButton({ sessionId, token, mfid }: Props) {
         borderRadius: 24, textDecoration: 'none', fontWeight: 600, fontSize: 14
       }}
     >
-      ↓ Télécharger toutes les photos
+      ↓ {t('downloadAll')}
     </a>
   )
 }

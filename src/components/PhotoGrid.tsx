@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { PhotoManifestItem } from '../types'
 import { savePhoto } from '../lib/savePhoto'
+import { useLang } from '../lib/i18n'
 
 interface Props { photos: PhotoManifestItem[]; token: string; mfid: string }
 
@@ -12,6 +13,7 @@ function PhotoLightbox({ photos, index, token, mfid, onClose, onNav }: {
   onClose: () => void
   onNav: (i: number) => void
 }) {
+  const { t } = useLang()
   const photo = photos[index]
   const fullUrl = `/api/photo/${photo.driveFileId}?token=${token}&mfid=${mfid}`
   return (
@@ -48,7 +50,7 @@ function PhotoLightbox({ photos, index, token, mfid, onClose, onNav }: {
         onClick={e => { e.stopPropagation(); void savePhoto(fullUrl, photo.filename) }}
         style={{ position: 'absolute', bottom: 28, background: 'white', color: '#202124', padding: '10px 28px', borderRadius: 24, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}
       >
-        ↓ Enregistrer
+        {t('save')}
       </button>
 
       {/* Counter */}

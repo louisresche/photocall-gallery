@@ -4,8 +4,10 @@ import GalleryPage from './pages/GalleryPage'
 import ExpiredPage from './pages/ExpiredPage'
 import EventGalleryPage from './pages/EventGalleryPage'
 import { PrivacyPage, TermsPage } from './pages/LegalPage'
+import { LangProvider } from './lib/i18n'
 export default function App() {
   return (
+    <LangProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -17,5 +19,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
+    </LangProvider>
   )
 }

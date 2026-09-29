@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react'
+import { useLang } from '../lib/i18n'
 
 interface Props { sessionId: string; token: string }
 
 // Formulaire « être prévenu par email » affiché tant que les photos ne sont pas en ligne
 export default function NotifyForm({ sessionId, token }: Props) {
+  const { t } = useLang()
   const [email, setEmail] = useState('')
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
 
@@ -24,7 +26,7 @@ export default function NotifyForm({ sessionId, token }: Props) {
   if (state === 'sent') return (
     <div style={{ marginTop: 24, fontSize: 14, color: '#137333' }}>
       ✓ C'est noté ! Vous recevrez un email dès que vos photos seront en ligne.
-      <div style={{ fontSize: 12, color: '#9aa0a6', marginTop: 6 }}>Pensez à consulter vos spams.</div>
+      <div style={{ fontSize: 12, color: '#9aa0a6', marginTop: 6 }}>{t('spamHint')}</div>
     </div>
   )
 
@@ -47,13 +49,13 @@ export default function NotifyForm({ sessionId, token }: Props) {
           disabled={state === 'sending'}
           style={{ padding: '10px 22px', borderRadius: 24, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, background: '#202124', color: 'white' }}
         >
-          {state === 'sending' ? 'Envoi…' : 'Me prévenir'}
+          {state === 'sending' ? t('sending') : t('notifyMe')}
         </button>
       </div>
       {state === 'error' && (
-        <div style={{ fontSize: 13, color: '#c5221f', marginTop: 8 }}>Erreur lors de l'envoi. Réessayez.</div>
+        <div style={{ fontSize: 13, color: '#c5221f', marginTop: 8 }}>{t('sendError')}</div>
       )}
-      <div style={{ fontSize: 11, color: '#bdc1c6', marginTop: 8 }}>Pensez à consulter vos spams à réception.</div>
+      <div style={{ fontSize: 11, color: '#bdc1c6', marginTop: 8 }}>{t('spamHint')}</div>
     </form>
   )
 }

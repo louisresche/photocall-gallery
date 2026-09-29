@@ -57,8 +57,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         <div style="padding:32px;text-align:center">
           <p style="font-size:17px;font-weight:700;color:#202124;margin:0 0 6px">Vos photos sont pr&ecirc;tes !</p>
           <p style="font-size:14px;color:#5f6368;line-height:1.6;margin:0 0 26px">
-            Votre galerie priv&eacute;e est en ligne : retrouvez-y vos photos, en pleine
-            qualit&eacute;, et t&eacute;l&eacute;chargez-les une par une ou toutes d'un coup.
+            Votre galerie priv&eacute;e est en ligne : retrouvez-y vos photos et
+            t&eacute;l&eacute;chargez-les une par une ou toutes d'un coup.
           </p>
           <a href="${galleryUrl}"
              style="display:inline-block;padding:14px 36px;background:#202124;color:#ffffff;text-decoration:none;border-radius:28px;font-weight:700;font-size:15px">

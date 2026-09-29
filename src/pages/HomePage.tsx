@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useLang, LangSwitch } from '../lib/i18n'
 
 // Accueil : les invités tapent le numéro à 6 caractères de leur ticket
 export default function HomePage() {
   const [id, setId] = useState('')
   const nav = useNavigate()
+  const { t } = useLang()
 
   function submit(e: FormEvent) {
     e.preventDefault()
@@ -13,14 +15,15 @@ export default function HomePage() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9fa', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <LangSwitch />
       <div style={{ textAlign: 'center', padding: '2rem 1.5rem', maxWidth: 420 }}>
         <div style={{ fontSize: 52, marginBottom: 8 }}>📷</div>
         <p style={{ margin: '0 0 14px', fontSize: 13, fontWeight: 800, letterSpacing: 3, textTransform: 'uppercase', color: '#9aa0a6' }}>SnapMe</p>
         <h1 style={{ margin: '0 0 8px', fontSize: 26, fontWeight: 800, color: '#202124', letterSpacing: -0.5 }}>
-          Retrouvez vos photos
+          {t('homeTitle')}
         </h1>
         <p style={{ color: '#5f6368', fontSize: 14, lineHeight: 1.6, margin: '0 0 24px' }}>
-          Saisissez le numéro à 6 caractères imprimé sur votre ticket.
+          {t('homeHelp')}
         </p>
         <form onSubmit={submit} style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
           <input
@@ -43,11 +46,11 @@ export default function HomePage() {
               background: id.length === 6 ? '#202124' : '#dadce0', color: 'white', transition: 'background 0.15s'
             }}
           >
-            Ouvrir →
+            {t('openArrow')}
           </button>
         </form>
         <p style={{ color: '#bdc1c6', fontSize: 12, marginTop: 20 }}>
-          Le code d'accès vous sera demandé à l'étape suivante.
+          {t('homeHint')}
         </p>
         <p style={{ fontSize: 11, marginTop: 28 }}>
           <Link to="/confidentialite" style={{ color: '#bdc1c6' }}>Confidentialité</Link>

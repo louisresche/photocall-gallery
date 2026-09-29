@@ -22,7 +22,15 @@ export default function GalleryPage() {
       const r = await fetch('/api/send-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: emailInput, galleryUrl: window.location.href, eventName: manifest.eventName })
+        body: JSON.stringify({
+          to: emailInput,
+          galleryUrl: window.location.href,
+          eventName: manifest.eventName,
+          // URL absolue : le client mail la charge depuis l'extérieur du site
+          logoUrl: manifest.logoDriveId
+            ? `${window.location.origin}/api/photo/${manifest.logoDriveId}?token=${token}&mfid=${mfid}`
+            : undefined
+        })
       })
       setEmailState(r.ok ? 'sent' : 'error')
       if (r.ok) {
@@ -123,9 +131,17 @@ export default function GalleryPage() {
     <div style={{ background: '#f8f9fa', minHeight: '100vh', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Hero header */}
       <div style={{ background: 'white', borderBottom: '1px solid #e8eaed', padding: '2rem 1.5rem 1.5rem', textAlign: 'center' }}>
-        <div style={{ fontSize: 13, color: '#9aa0a6', textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600, marginBottom: 8 }}>
-          Galerie photos
-        </div>
+        {manifest.logoDriveId ? (
+          <img
+            src={`/api/photo/${manifest.logoDriveId}?token=${token}&mfid=${mfid}`}
+            alt=""
+            style={{ maxHeight: 72, maxWidth: 220, objectFit: 'contain', display: 'block', margin: '0 auto 14px' }}
+          />
+        ) : (
+          <div style={{ fontSize: 13, color: '#9aa0a6', textTransform: 'uppercase', letterSpacing: 1.5, fontWeight: 600, marginBottom: 8 }}>
+            Galerie photos
+          </div>
+        )}
         <h1 style={{ margin: 0, fontSize: 'clamp(24px, 5vw, 40px)', fontWeight: 800, color: '#202124', letterSpacing: -0.5 }}>
           {manifest.eventName}
         </h1>

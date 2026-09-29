@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { PhotoManifestItem } from '../types'
+import { savePhoto } from '../lib/savePhoto'
 
 interface Props { photos: PhotoManifestItem[]; token: string; mfid: string }
 
@@ -41,15 +42,14 @@ function PhotoLightbox({ photos, index, token, mfid, onClose, onNav }: {
           style={{ position: 'absolute', right: 16, background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', fontSize: 28, width: 52, height: 52, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
       )}
 
-      {/* Download */}
-      <a
-        href={fullUrl}
-        download={photo.filename}
-        onClick={e => e.stopPropagation()}
-        style={{ position: 'absolute', bottom: 28, background: 'white', color: '#202124', padding: '10px 28px', borderRadius: 24, textDecoration: 'none', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}
+      {/* Enregistrement : pellicule du téléphone sur mobile, téléchargement sur ordinateur */}
+      <button
+        type="button"
+        onClick={e => { e.stopPropagation(); void savePhoto(fullUrl, photo.filename) }}
+        style={{ position: 'absolute', bottom: 28, background: 'white', color: '#202124', padding: '10px 28px', borderRadius: 24, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}
       >
-        ↓ Télécharger
-      </a>
+        ↓ Enregistrer
+      </button>
 
       {/* Counter */}
       <div style={{ position: 'absolute', top: 24, left: 0, right: 0, textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>

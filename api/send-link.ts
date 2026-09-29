@@ -23,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(204).end()
   if (req.method !== 'POST') return res.status(405).end()
 
-  const { to, galleryUrl, eventName, contactEmail } = req.body as { to: string; galleryUrl: string; eventName: string; contactEmail?: string }
+  const { to, galleryUrl, eventName, contactEmail, logoUrl } = req.body as { to: string; galleryUrl: string; eventName: string; contactEmail?: string; logoUrl?: string }
   if (!to || !galleryUrl) return res.status(400).json({ error: 'Missing params' })
 
   const override = getEmailOverride()
@@ -42,19 +42,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const esc = (s: string) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   const safeName = esc(eventName || 'Votre événement')
+  // Seules les URL http(s) sont reprises : jamais de javascript:/data: dans le mail
+  const safeLogo = logoUrl && /^https?:\/\//i.test(logoUrl) ? esc(logoUrl).replace(/"/g, '&quot;') : ''
 
   const html = `
     <div style="background:#f4f5f7;padding:32px 16px;font-family:system-ui,-apple-system,'Segoe UI',sans-serif">
       <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e8eaed">
         <div style="background:#202124;padding:30px 32px;text-align:center">
-          <div style="font-size:36px;line-height:1">&#128248;</div>
+          ${safeLogo
+            ? `<img src="${safeLogo}" alt="" style="max-height:56px;max-width:180px;display:block;margin:0 auto">`
+            : '<div style="font-size:36px;line-height:1">&#128248;</div>'}
           <h1 style="color:#ffffff;font-size:22px;font-weight:800;margin:10px 0 0;letter-spacing:-0.3px">${safeName}</h1>
         </div>
         <div style="padding:32px;text-align:center">
           <p style="font-size:17px;font-weight:700;color:#202124;margin:0 0 6px">Vos photos sont pr&ecirc;tes !</p>
           <p style="font-size:14px;color:#5f6368;line-height:1.6;margin:0 0 26px">
-            Retrouvez toutes les photos de l'&eacute;v&eacute;nement dans votre galerie priv&eacute;e :
-            visualisez-les, t&eacute;l&eacute;chargez-les une par une ou toutes d'un coup.
+            Votre galerie priv&eacute;e est en ligne : retrouvez-y vos photos, en pleine
+            qualit&eacute;, et t&eacute;l&eacute;chargez-les une par une ou toutes d'un coup.
           </p>
           <a href="${galleryUrl}"
              style="display:inline-block;padding:14px 36px;background:#202124;color:#ffffff;text-decoration:none;border-radius:28px;font-weight:700;font-size:15px">
@@ -67,13 +71,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         </div>
         <div style="border-top:1px solid #f1f3f4;padding:18px 32px;text-align:center">
           ${contactEmail ? `<p style="margin:0 0 6px;font-size:12px;color:#9aa0a6">Un probl&egrave;me avec vos photos ? Contactez <a href="mailto:${esc(contactEmail)}" style="color:#5f6368">${esc(contactEmail)}</a></p>` : ''}
-          <p style="margin:0;font-size:11px;color:#bdc1c6">Envoy&eacute; par SnapMe &middot; la galerie expire automatiquement apr&egrave;s l'&eacute;v&eacute;nement</p>
+          <p style="margin:0;font-size:11px;color:#bdc1c6">Envoy&eacute; par SnapMe &middot; pensez &agrave; t&eacute;l&eacute;charger vos photos, la galerie reste en ligne pour une dur&eacute;e limit&eacute;e</p>
         </div>
       </div>
     </div>`
 
-  const subject = `Vos photos - ${eventName}`
-  const text = `${eventName}\n\nVos photos sont prêtes !\n\nVoir mes photos : ${galleryUrl}${contactEmail ? `\n\nEn cas de problème avec vos photos, contactez : ${contactEmail}` : ''}`
+  const subject = `Vos photos — ${eventName}`
+  const text = `${eventName}\n\nVos photos sont prêtes !\n\nVotre galerie privée est en ligne : retrouvez-y vos photos et téléchargez-les.\n${galleryUrl}\n\nPensez à les télécharger : la galerie reste en ligne pour une durée limitée.${contactEmail ? `\n\nUn problème avec vos photos ? Contactez ${contactEmail}` : ''}`
 
   try {
     if (apiKey) {

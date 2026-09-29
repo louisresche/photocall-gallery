@@ -1,7 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { driveGetJson, driveGetBuffer, driveResolveManifestId, manifestExpired } from '../_drive.js'
+import { driveGetJson, driveGetStream, driveResolveManifestId, manifestExpired } from '../_drive.js'
 import archiver from 'archiver'
-import { Readable } from 'stream'
 
 function slugify(str: string): string {
   return str.normalize('NFD')
@@ -28,12 +27,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.setHeader('Content-Type', 'application/zip')
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
 
-    const archive = archiver('zip', { zlib: { level: 6 } })
+    // level 0 : les JPEG sont déjà compressés, recompresser ne gagne rien
+    const archive = archiver('zip', { zlib: { level: 0 } })
     archive.pipe(res)
 
+    // Une photo à la fois, en flux : la mémoire ne dépend pas du nombre de photos
     for (const photo of manifest.photos) {
-      const { buffer } = await driveGetBuffer(photo.driveFileId)
-      archive.append(Readable.from(buffer), { name: photo.filename })
+      const stream = await driveGetStream(photo.driveFileId)
+      const written = new Promise<void>((resolve) => archive.once('entry', () => resolve()))
+      archive.append(stream, { name: photo.filename })
+      await written
     }
 
     await archive.finalize()

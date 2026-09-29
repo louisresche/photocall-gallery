@@ -30,10 +30,12 @@ function mount(handler: (req: any, res: any) => Promise<unknown> | unknown): exp
   }
 }
 
-const [gallery, photo, download, sendLink, notifyRequest, health] = await Promise.all([
+const [gallery, photo, download, eventGallery, eventDownload, sendLink, notifyRequest, health] = await Promise.all([
   loadHandler('gallery/[id].ts'),
   loadHandler('photo/[fileId].ts'),
   loadHandler('download/[id].ts'),
+  loadHandler('event/[id].ts'),
+  loadHandler('event-download/[id].ts'),
   loadHandler('send-link.ts'),
   loadHandler('notify-request.ts'),
   loadHandler('health.ts')
@@ -46,6 +48,14 @@ app.use(express.json({ limit: '32kb' }))
 app.get('/api/gallery/:id', mount(gallery))
 app.get('/api/photo/:fileId', mount(photo))
 app.get('/api/download/:id', mount(download))
+app.get('/api/event/:id', mount(eventGallery))
+// Archive d'un événement entier : peut durer plusieurs minutes, on désarme les
+// délais d'inactivité d'Express sur cette route uniquement.
+app.get('/api/event-download/:id', (req, res, next) => {
+  req.setTimeout(0)
+  res.setTimeout(0)
+  next()
+}, mount(eventDownload))
 app.post('/api/send-link', mount(sendLink))
 app.options('/api/send-link', mount(sendLink))
 app.post('/api/notify-request', mount(notifyRequest))

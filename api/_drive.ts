@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs'
+import { Readable } from 'node:stream'
 
 // En autohébergé, le jeton poussé par l'app PhotoCall (data/refresh-token) prime
 // sur la variable d'environnement. Sur Vercel, le fichier n'existe pas.
@@ -107,6 +108,25 @@ export async function driveGetJson(fileId: string): Promise<any> {
   })
   if (!res.ok) throw new Error(`Drive error ${res.status}: ${await res.text()}`)
   return res.json()
+}
+
+// Flux d'octets sans passer par un Buffer complet : indispensable pour assembler
+// une archive de plusieurs gigaoctets sans saturer la mémoire du serveur.
+export async function driveGetStream(fileId: string): Promise<Readable> {
+  const token = await getAccessToken()
+  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  if (!res.ok || !res.body) throw new Error(`Drive error ${res.status}`)
+  return Readable.fromWeb(res.body as any)
+}
+
+// Retrouve le manifest d'un événement par le nom de son fichier (event-<code>.json)
+export async function driveResolveEventManifestId(eventId: string): Promise<string | null> {
+  if (!/^[A-Za-z0-9]{4,12}$/.test(eventId)) return null
+  const accessToken = await getAccessToken()
+  const files = await driveList(`name = 'event-${eventId}.json' and trashed = false`, accessToken)
+  return files[0]?.id ?? null
 }
 
 export async function driveGetBuffer(fileId: string): Promise<{ buffer: Buffer; contentType: string }> {

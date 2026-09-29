@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import HomePage from './pages/HomePage'
 import GalleryPage from './pages/GalleryPage'
 import ExpiredPage from './pages/ExpiredPage'
+import EventGalleryPage from './pages/EventGalleryPage'
 import { PrivacyPage, TermsPage } from './pages/LegalPage'
 export default function App() {
   return (
@@ -9,6 +10,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/g/:sessionId" element={<GalleryPage />} />
+        <Route path="/e/:eventId" element={<EventGalleryPage />} />
         <Route path="/expired" element={<ExpiredPage />} />
         <Route path="/confidentialite" element={<PrivacyPage />} />
         <Route path="/conditions" element={<TermsPage />} />

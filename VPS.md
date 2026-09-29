@@ -54,8 +54,15 @@ docker inspect $(docker ps -q) --format '{{json .Config.Labels}}' 2>/dev/null | 
 
 # puis dans .env :
 #   TRAEFIK_NETWORK=<le réseau>  TRAEFIK_CERTRESOLVER=<le resolver>  (TRAEFIK_ENTRYPOINT=websecure par défaut)
-docker compose -f docker-compose.traefik.yml up -d --build
+#   COMPOSE_FILE=docker-compose.traefik.yml
+#   COMPOSE_PROFILES=autoupdate
+docker compose up -d --build
 ```
+
+Les deux lignes `COMPOSE_*` sont importantes : elles inscrivent le choix de la variante
+**dans le serveur**. Sans elles, un `docker compose up -d` tapé sans `-f` recrée la stack
+Caddy par défaut, qui perd les labels Traefik (le domaine renvoie alors un 404 de Traefik)
+et tente d'ouvrir le port 80 déjà occupé.
 
 **Nginx Proxy Manager conteneurisé :** le port est publié sur `127.0.0.1` par défaut ; mettez `GALLERY_BIND=0.0.0.0` dans le `.env` (et pare-feu sur le port 3000) ou raccordez les réseaux Docker.
 
@@ -102,17 +109,26 @@ Dans **Options → Galerie en ligne** :
 
 **Automatiques (recommandé)** : à chaque mise à jour du repo, GitHub Actions publie une image précompilée (`ghcr.io/louisresche/photocall-gallery:latest`). La stack par défaut inclut **Watchtower**, qui vérifie chaque jour et met la galerie à jour toute seule — rien à faire.
 
-Avec les fichiers `proxy` ou `traefik`, ajoutez `--profile autoupdate` au `up -d` pour activer Watchtower.
+Avec les fichiers `proxy` ou `traefik`, Watchtower est sous le profil `autoupdate` : il ne
+démarre pas tant que ce profil n'est pas activé. Mettez `COMPOSE_PROFILES=autoupdate` dans
+le `.env` plutôt que de répéter `--profile autoupdate` à chaque commande — sinon un `up -d`
+oublié retire le conteneur Watchtower et les mises à jour automatiques s'arrêtent en silence.
 
 **Serveur avec un Watchtower déjà en place :** aucun conflit — le Watchtower de la galerie est isolé dans son propre scope (`photocall`) : il ne touche que le conteneur de la galerie, ignore vos autres conteneurs et ne supprime pas votre instance existante (comportement multi-instances officiel de Watchtower). Deux cas :
 - votre Watchtower surveille *tous* les conteneurs (mode par défaut, sans `--label-enable`) → il mettra aussi la galerie à jour ; inutile d'activer le profil `autoupdate` ;
 - votre Watchtower est en `--label-enable` → le label `enable=true` est déjà posé sur la galerie, il la couvrira aussi. Sinon, activez le profil `autoupdate` pour avoir l'instance scopée dédiée.
 
-**Manuelles** :
+**Manuelles** — la même commande sur tous les serveurs, à condition d'avoir renseigné
+`COMPOSE_FILE` dans le `.env` de ceux qui sont derrière un reverse proxy (voir plus haut) :
 ```bash
 cd photocall-gallery
 git pull                # récupère les éventuels nouveaux fichiers compose
 docker compose pull && docker compose up -d
+```
+
+Pour vérifier d'un coup d'œil quelle variante s'appliquera sur ce serveur :
+```bash
+docker compose config --services      # gallery + caddy → stack autonome ; gallery seul → derrière un proxy
 ```
 
 **Compiler depuis les sources** (au lieu de l'image précompilée) : `docker compose up -d --build`.

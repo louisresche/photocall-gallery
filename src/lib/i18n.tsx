@@ -41,7 +41,7 @@ const STRINGS = {
     comingSoon: 'Les photos arrivent bientôt…',
     autoRefresh: 'Cette page se rafraîchit automatiquement',
     notifyMe: 'Me prévenir',
-    retention: 'Galerie accessible pendant {days} jour{s}, les photos seront supprimées de nos serveurs ensuite.',
+    retention: 'Galerie accessible pendant {days} jour{s}, les photos seront supprimées de nos serveurs.',
     save: '↓ Enregistrer',
     expiredTitle: 'Les photos ne sont plus disponibles',
     expiredText: 'Le délai de conservation de cette galerie est dépassé : les photos ont été retirées.',
@@ -53,7 +53,7 @@ const STRINGS = {
     preparingText: 'Les photos de cet événement ne sont pas encore en ligne. Réessayez dans quelques minutes.',
     noAccessTitle: 'Accès impossible',
     invalidCode: 'Code d\'accès invalide.',
-    streamNote: 'L\'archive se construit pendant le téléchargement : elle démarre tout de suite, mais sa taille totale ne peut pas être annoncée à l\'avance. Gardez l\'onglet ouvert jusqu\'à la fin.'
+    streamNote: 'Gardez cet onglet ouvert jusqu\'à la fin du téléchargement.'
   },
   en: {
     loading: 'Loading gallery…',
@@ -89,7 +89,7 @@ const STRINGS = {
     preparingText: 'The photos from this event are not online yet. Please try again in a few minutes.',
     noAccessTitle: 'Access denied',
     invalidCode: 'Invalid access code.',
-    streamNote: 'The archive is built while it downloads: it starts right away, but its total size cannot be announced up front. Keep this tab open until it finishes.'
+    streamNote: 'Keep this tab open until the download finishes.'
   }
 } as const
 

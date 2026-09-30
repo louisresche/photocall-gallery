@@ -25,7 +25,7 @@ export default function NotifyForm({ sessionId, token }: Props) {
 
   if (state === 'sent') return (
     <div style={{ marginTop: 24, fontSize: 14, color: '#137333' }}>
-      ✓ C'est noté ! Vous recevrez un email dès que vos photos seront en ligne.
+      {t('notifyDone')}
       <div style={{ fontSize: 12, color: '#9aa0a6', marginTop: 6 }}>{t('spamHint')}</div>
     </div>
   )
@@ -33,7 +33,7 @@ export default function NotifyForm({ sessionId, token }: Props) {
   return (
     <form onSubmit={handleSubmit} style={{ marginTop: 24 }}>
       <div style={{ fontSize: 13, color: '#5f6368', marginBottom: 10 }}>
-        Recevez un email dès que vos photos sont en ligne :
+        {t('notifyPrompt')}
       </div>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
         <input

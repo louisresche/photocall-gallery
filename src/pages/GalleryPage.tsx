@@ -97,11 +97,12 @@ export default function GalleryPage() {
 
   // Session pas encore synchronisée (créée hors ligne) : les photos arrivent avec la connexion
   if (notReady && !manifest) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9fa' }}>
-      <div style={{ textAlign: 'center', color: '#9aa0a6', padding: '0 1.5rem' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9fa', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <LangSwitch />
+      <div style={{ textAlign: 'center', color: '#9aa0a6', padding: '0 1.5rem', maxWidth: 420 }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>📷</div>
-        <div style={{ fontSize: 16, color: '#5f6368' }}>Les photos arrivent bientôt…</div>
-        <div style={{ fontSize: 13, marginTop: 8 }}>Cette page se rafraîchit automatiquement</div>
+        <div style={{ fontSize: 18, fontWeight: 700, color: '#202124' }}>{t('uploadingTitle')}</div>
+        <div style={{ fontSize: 14, marginTop: 8, color: '#5f6368', lineHeight: 1.6 }}>{t('uploadingText')}</div>
         <NotifyForm sessionId={sessionId!} token={token} />
       </div>
     </div>
@@ -193,18 +194,31 @@ export default function GalleryPage() {
         {manifest.photos.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '4rem 0', color: '#9aa0a6' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>📷</div>
-            <div style={{ fontSize: 16 }}>{t('comingSoon')}</div>
-            <div style={{ fontSize: 13, marginTop: 8 }}>{t('autoRefresh')}</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: '#202124' }}>{t('uploadingTitle')}</div>
+            <div style={{ fontSize: 14, marginTop: 8, color: '#5f6368', lineHeight: 1.6 }}>{t('uploadingText')}</div>
             <NotifyForm sessionId={sessionId!} token={token} />
           </div>
         ) : (
-          <PhotoGrid photos={manifest.photos} token={token} mfid={mfid} />
+          <>
+            {!!manifest.pendingCount && manifest.pendingCount > 0 && (
+              <div style={{ background: '#fef7e0', border: '1px solid #fdd663', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#5f6368', textAlign: 'center' }}>
+                {t('uploadingPartial', { n: manifest.pendingCount })}
+              </div>
+            )}
+            <PhotoGrid photos={manifest.photos} token={token} mfid={mfid} />
+          </>
         )}
       </div>
 
       {/* Footer */}
       <div style={{ textAlign: 'center', padding: '2rem', color: '#bdc1c6', fontSize: 12 }}>
         {t('retention', { days: daysLeft })}
+        {manifest.contactEmail && (
+          <div style={{ marginTop: 6 }}>
+            {t('contactLine', { email: '' })}
+            <a href={`mailto:${manifest.contactEmail}`} style={{ color: '#9aa0a6' }}>{manifest.contactEmail}</a>
+          </div>
+        )}
       </div>
     </div>
   )

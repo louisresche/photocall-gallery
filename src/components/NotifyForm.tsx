@@ -40,7 +40,7 @@ export default function NotifyForm({ sessionId, token }: Props) {
           type="email"
           value={email}
           onChange={e => { setEmail(e.target.value); setState('idle') }}
-          placeholder="votre@email.com"
+          placeholder={t('emailPlaceholder')}
           required
           style={{ border: '1.5px solid #dadce0', borderRadius: 24, padding: '10px 18px', fontSize: 14, outline: 'none', minWidth: 220 }}
         />

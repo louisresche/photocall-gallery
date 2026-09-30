@@ -53,9 +53,9 @@ export default function HomePage() {
           {t('homeHint')}
         </p>
         <p style={{ fontSize: 11, marginTop: 28 }}>
-          <Link to="/confidentialite" style={{ color: '#bdc1c6' }}>Confidentialité</Link>
+          <Link to="/confidentialite" style={{ color: '#bdc1c6' }}>{t('legalPrivacy')}</Link>
           <span style={{ color: '#dadce0', margin: '0 8px' }}>·</span>
-          <Link to="/conditions" style={{ color: '#bdc1c6' }}>Conditions d'utilisation</Link>
+          <Link to="/conditions" style={{ color: '#bdc1c6' }}>{t('legalTerms')}</Link>
         </p>
       </div>
     </div>

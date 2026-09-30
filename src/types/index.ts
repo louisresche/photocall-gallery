@@ -8,6 +8,8 @@ export interface SessionManifest {
   photos: PhotoManifestItem[]
   mfid?: string // ID Drive du manifest, résolu côté serveur quand absent de l'URL
   logoDriveId?: string // Logo de l'événement, affiché en tête de galerie et dans les emails
+  pendingCount?: number // Photos prises mais pas encore téléversées
+  contactEmail?: string
 }
 
 export interface EventManifest {
@@ -17,4 +19,6 @@ export interface EventManifest {
   photos: PhotoManifestItem[]
   efid?: string        // ID Drive du manifest, résolu côté serveur quand absent de l'URL
   logoDriveId?: string
+  pendingCount?: number
+  contactEmail?: string
 }

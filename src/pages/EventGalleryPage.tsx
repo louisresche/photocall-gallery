@@ -131,11 +131,22 @@ export default function EventGalleryPage() {
       </div>
 
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '1.5rem 1rem 3rem' }}>
+        {!!manifest.pendingCount && manifest.pendingCount > 0 && (
+          <div style={{ background: '#fef7e0', border: '1px solid #fdd663', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#5f6368', textAlign: 'center' }}>
+            {t('uploadingPartial', { n: manifest.pendingCount })}
+          </div>
+        )}
         <PhotoGrid photos={manifest.photos} token={token} mfid={efid} />
       </div>
 
       <div style={{ textAlign: 'center', padding: '0 2rem 2rem', color: '#bdc1c6', fontSize: 12 }}>
         {t('retention', { days: daysLeft })}
+        {manifest.contactEmail && (
+          <div style={{ marginTop: 6 }}>
+            {t('contactLine', { email: '' })}
+            <a href={`mailto:${manifest.contactEmail}`} style={{ color: '#9aa0a6' }}>{manifest.contactEmail}</a>
+          </div>
+        )}
       </div>
     </div>
   )

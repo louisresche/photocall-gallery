@@ -57,7 +57,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e8eaed">
         <div style="background:#ffffff;border-bottom:1px solid #e8eaed;padding:30px 32px;text-align:center">
           ${safeLogo
-            ? `<img src="${safeLogo}" alt="" style="max-height:56px;max-width:180px;display:block;margin:0 auto">`
+            // height en attribut HTML (et non seulement en CSS) : Gmail et Outlook
+            // suppriment max-height/max-width, l'image s'afficherait alors à sa
+            // taille d'origine. alt = nom de l'événement : si le destinataire
+            // bloque les images distantes, il voit au moins ce texte plutôt que rien.
+            ? `<img src="${safeLogo}" alt="${safeName}" height="48" style="height:48px;width:auto;max-width:180px;display:block;margin:0 auto;border:0" border="0">`
             : '<div style="font-size:36px;line-height:1">&#128248;</div>'}
           <h1 style="color:#202124;font-size:22px;font-weight:800;margin:10px 0 0;letter-spacing:-0.3px">${safeName}</h1>
         </div>

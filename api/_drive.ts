@@ -66,9 +66,29 @@ async function getAccessToken(): Promise<string> {
   return data.access_token
 }
 
-async function driveList(query: string, accessToken: string): Promise<{ id: string; name: string }[]> {
+// Requête authentifiée auprès de Drive.
+//
+// Le jeton étant conservé en mémoire, il peut devenir caduc avant son échéance :
+// c'est le cas quand l'organisateur reconnecte son Drive dans l'application, ce
+// qui invalide les jetons issus de l'ancien. Sans cette reprise, la galerie
+// aurait renvoyé des erreurs aux invités pendant près d'une heure, le temps que
+// le jeton en cache expire de lui-même.
+async function driveAuthedFetch(url: string, init: RequestInit = {}): Promise<Response> {
+  const withToken = async () => {
+    const token = await getAccessToken()
+    return fetchDrive(url, { ...init, headers: { ...(init.headers ?? {}), Authorization: `Bearer ${token}` } })
+  }
+
+  const res = await withToken()
+  if (res.status !== 401) return res
+
+  invalidateAccessToken()
+  return withToken()
+}
+
+async function driveList(query: string): Promise<{ id: string; name: string }[]> {
   const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)&pageSize=10`
-  const res = await fetchDrive(url, { headers: { Authorization: `Bearer ${accessToken}` } })
+  const res = await driveAuthedFetch(url)
   if (!res.ok) throw new Error(`Drive error ${res.status}: ${await res.text()}`)
   const data = await res.json() as { files: { id: string; name: string }[] }
   return data.files ?? []
@@ -78,37 +98,39 @@ async function driveList(query: string, accessToken: string): Promise<{ id: stri
 // (fallback quand l'URL du QR a été générée hors ligne, sans mfid)
 export async function driveResolveManifestId(sessionId: string): Promise<string | null> {
   if (!/^[A-Za-z0-9]{4,12}$/.test(sessionId)) return null
-  const accessToken = await getAccessToken()
-  const folders = await driveList(
-    `name = '${sessionId}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
-    accessToken
-  )
+  const folders = await driveList(`name = '${sessionId}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`)
   for (const folder of folders) {
-    const files = await driveList(
-      `name = 'manifest.json' and '${folder.id}' in parents and trashed = false`,
-      accessToken
-    )
+    const files = await driveList(`name = 'manifest.json' and '${folder.id}' in parents and trashed = false`)
     if (files[0]) return files[0].id
   }
   return null
+}
+
+// Écriture authentifiée. Rejouer sur un 401 est sans danger : un jeton refusé
+// signifie que Google n'a rien créé, il n'y a donc pas de risque de doublon.
+// (Les erreurs 429/5xx, elles, ne sont PAS rejouées sur les écritures : la
+// requête a pu aboutir malgré la réponse, et une demande en double partirait.)
+async function driveAuthedWrite(url: string, build: (token: string) => RequestInit): Promise<Response> {
+  let res = await fetch(url, build(await getAccessToken()))
+  if (res.status === 401) {
+    invalidateAccessToken()
+    res = await fetch(url, build(await getAccessToken()))
+  }
+  return res
 }
 
 const NOTIF_FOLDER = 'photocall-notifications'
 
 // Dépose une demande de notification (JSON) dans le dossier photocall-notifications à la racine du Drive
 export async function driveSaveNotifyRequest(content: object, sessionId: string): Promise<void> {
-  const accessToken = await getAccessToken()
-  const folders = await driveList(
-    `name = '${NOTIF_FOLDER}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
-    accessToken
-  )
+  const folders = await driveList(`name = '${NOTIF_FOLDER}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`)
   let folderId = folders[0]?.id
   if (!folderId) {
-    const res = await fetch('https://www.googleapis.com/drive/v3/files', {
+    const res = await driveAuthedWrite('https://www.googleapis.com/drive/v3/files', (token) => ({
       method: 'POST',
-      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: NOTIF_FOLDER, mimeType: 'application/vnd.google-apps.folder', parents: ['root'] })
-    })
+    }))
     if (!res.ok) throw new Error(`Drive error ${res.status}: ${await res.text()}`)
     folderId = (await res.json() as { id: string }).id
   }
@@ -118,19 +140,16 @@ export async function driveSaveNotifyRequest(content: object, sessionId: string)
   const body =
     `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${meta}\r\n` +
     `--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(content)}\r\n--${boundary}--`
-  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+  const res = await driveAuthedWrite('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', (token) => ({
     method: 'POST',
-    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': `multipart/related; boundary=${boundary}` },
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': `multipart/related; boundary=${boundary}` },
     body
-  })
+  }))
   if (!res.ok) throw new Error(`Drive error ${res.status}: ${await res.text()}`)
 }
 
 export async function driveGetJson(fileId: string): Promise<any> {
-  const token = await getAccessToken()
-  const res = await fetchDrive(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`, {
-    headers: { Authorization: `Bearer ${token}` }
-  })
+  const res = await driveAuthedFetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`)
   if (!res.ok) throw new Error(`Drive error ${res.status}: ${await res.text()}`)
   return res.json()
 }
@@ -138,10 +157,7 @@ export async function driveGetJson(fileId: string): Promise<any> {
 // Flux d'octets sans passer par un Buffer complet : indispensable pour assembler
 // une archive de plusieurs gigaoctets sans saturer la mémoire du serveur.
 export async function driveGetStream(fileId: string): Promise<Readable> {
-  const token = await getAccessToken()
-  const res = await fetchDrive(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`, {
-    headers: { Authorization: `Bearer ${token}` }
-  })
+  const res = await driveAuthedFetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`)
   if (!res.ok || !res.body) throw new Error(`Drive error ${res.status}`)
   return Readable.fromWeb(res.body as any)
 }
@@ -149,16 +165,12 @@ export async function driveGetStream(fileId: string): Promise<Readable> {
 // Retrouve le manifest d'un événement par le nom de son fichier (event-<code>.json)
 export async function driveResolveEventManifestId(eventId: string): Promise<string | null> {
   if (!/^[A-Za-z0-9]{4,12}$/.test(eventId)) return null
-  const accessToken = await getAccessToken()
-  const files = await driveList(`name = 'event-${eventId}.json' and trashed = false`, accessToken)
+  const files = await driveList(`name = 'event-${eventId}.json' and trashed = false`)
   return files[0]?.id ?? null
 }
 
 export async function driveGetBuffer(fileId: string): Promise<{ buffer: Buffer; contentType: string }> {
-  const token = await getAccessToken()
-  const res = await fetchDrive(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`, {
-    headers: { Authorization: `Bearer ${token}` }
-  })
+  const res = await driveAuthedFetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(fileId)}?alt=media`)
   if (!res.ok) throw new Error(`Drive error ${res.status}: ${await res.text()}`)
   return {
     buffer: Buffer.from(await res.arrayBuffer()),

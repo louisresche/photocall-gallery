@@ -13,6 +13,8 @@ export interface SessionManifest {
 }
 
 export interface EventManifest {
+  kind?: 'event' | 'favorites' | 'tag'
+  tagName?: string
   eventId: string; token: string; eventName: string
   createdAt: string; expiresAt: string; expired: boolean
   sessionCount: number

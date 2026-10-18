@@ -111,8 +111,19 @@ export default function EventGalleryPage() {
         <h1 style={{ margin: 0, fontSize: 'clamp(24px, 5vw, 40px)', fontWeight: 800, color: '#202124', letterSpacing: -0.5 }}>
           {manifest.eventName}
         </h1>
+        {manifest.kind === 'tag' && manifest.tagName && (
+          <div style={{ marginTop: 6, fontSize: 13, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#1967d2' }}>
+            {manifest.tagName}
+          </div>
+        )}
+        {manifest.kind === 'favorites' && (
+          <div style={{ marginTop: 6, fontSize: 13, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#b58900' }}>
+            ⭐ {t('bestOf')}
+          </div>
+        )}
         <div style={{ color: '#9aa0a6', marginTop: 8, fontSize: 14 }}>
-          {createdAt} · {t('photoCount', { n: manifest.photos.length })} · {t('sessionCount', { n: manifest.sessionCount })}
+          {createdAt} · {t('photoCount', { n: manifest.photos.length })}
+          {manifest.kind !== 'favorites' && <> · {t('sessionCount', { n: manifest.sessionCount })}</>}
         </div>
 
         {manifest.photos.length > 0 && (

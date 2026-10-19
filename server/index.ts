@@ -30,9 +30,11 @@ function mount(handler: (req: any, res: any) => Promise<unknown> | unknown): exp
   }
 }
 
-const [gallery, photo, download, eventGallery, eventDownload, sendLink, notifyRequest, health] = await Promise.all([
+const [gallery, photo, file, logo, download, eventGallery, eventDownload, sendLink, notifyRequest, health] = await Promise.all([
   loadHandler('gallery/[id].ts'),
   loadHandler('photo/[fileId].ts'),
+  loadHandler('file.ts'),
+  loadHandler('logo/[id].ts'),
   loadHandler('download/[id].ts'),
   loadHandler('event/[id].ts'),
   loadHandler('event-download/[id].ts'),
@@ -47,6 +49,8 @@ app.use(express.json({ limit: '32kb' }))
 
 app.get('/api/gallery/:id', mount(gallery))
 app.get('/api/photo/:fileId', mount(photo))
+app.get('/api/file', mount(file))
+app.get('/api/logo/:id', mount(logo))
 app.get('/api/download/:id', mount(download))
 app.get('/api/event/:id', mount(eventGallery))
 // Archive d'un événement entier : peut durer plusieurs minutes, on désarme les
@@ -84,6 +88,21 @@ app.post('/api/admin/email', (req, res) => {
   mkdirSync(DATA_DIR, { recursive: true })
   writeFileSync(join(DATA_DIR, 'email.json'), JSON.stringify({ smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom }), { mode: 0o600 })
   console.log('[admin] configuration email mise à jour')
+  return res.json({ ok: true })
+})
+
+// L'app SnapMe pousse les identifiants Cloudflare R2 (Réglages → Stockage) —
+// stockés dans le volume, ils priment sur les variables R2_* du .env
+app.post('/api/admin/r2', (req, res) => {
+  if (!ADMIN_TOKEN) return res.status(503).json({ error: 'ADMIN_TOKEN non configuré sur le serveur' })
+  if (req.headers.authorization !== `Bearer ${ADMIN_TOKEN}`) return res.status(401).json({ error: 'Unauthorized' })
+  const { accountId, accessKeyId, secretAccessKey, bucket } = req.body as Record<string, unknown>
+  if (![accountId, accessKeyId, secretAccessKey, bucket].every(v => typeof v === 'string' && v)) {
+    return res.status(400).json({ error: 'accountId, accessKeyId, secretAccessKey et bucket requis' })
+  }
+  mkdirSync(DATA_DIR, { recursive: true })
+  writeFileSync(join(DATA_DIR, 'r2.json'), JSON.stringify({ accountId, accessKeyId, secretAccessKey, bucket }), { mode: 0o600 })
+  console.log('[admin] identifiants R2 mis à jour')
   return res.json({ ok: true })
 })
 

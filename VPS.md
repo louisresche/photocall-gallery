@@ -93,6 +93,7 @@ Trois options, de la plus simple à la plus lourde :
 | `GOOGLE_OAUTH_CLIENT_ID` / `_SECRET` | dans le fichier `client_secret_….json` téléchargé lors de la configuration de PhotoCall (champs `client_id` / `client_secret`) |
 | `GOOGLE_OAUTH_REFRESH_TOKEN` | valeur initiale quelconque, ou vide : l'app la poussera via `ADMIN_TOKEN` |
 | `ADMIN_TOKEN` | une valeur aléatoire longue : `openssl rand -hex 32` |
+| `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | facultatif, photos sur Cloudflare R2 : laissez vide, l'app les envoie via `ADMIN_TOKEN` (Réglages → Stockage) |
 | Emails | `RESEND_API_KEY` **ou** `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASS`/`SMTP_FROM` (le SMTP de n'importe quelle boîte mail existante fonctionne : OVH, Gmail, Brevo…) |
 
 ## Relier PhotoCall

@@ -15,7 +15,7 @@ function PhotoLightbox({ photos, index, token, mfid, onClose, onNav }: {
 }) {
   const { t } = useLang()
   const photo = photos[index]
-  const fullUrl = `/api/photo/${photo.driveFileId}?token=${token}&mfid=${mfid}`
+  const fullUrl = photo.src ?? `/api/photo/${photo.driveFileId}?token=${token}&mfid=${mfid}`
   return (
     <div
       onClick={onClose}
@@ -47,7 +47,7 @@ function PhotoLightbox({ photos, index, token, mfid, onClose, onNav }: {
       {/* Enregistrement : pellicule du téléphone sur mobile, téléchargement sur ordinateur */}
       <button
         type="button"
-        onClick={e => { e.stopPropagation(); void savePhoto(fullUrl, photo.filename) }}
+        onClick={e => { e.stopPropagation(); void savePhoto(photo.save ?? fullUrl, photo.filename) }}
         style={{ position: 'absolute', bottom: 28, background: 'white', color: '#202124', padding: '10px 28px', borderRadius: 24, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}
       >
         {t('save')}
@@ -63,7 +63,7 @@ function PhotoLightbox({ photos, index, token, mfid, onClose, onNav }: {
 
 export default function PhotoGrid({ photos, token, mfid }: Props) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null)
-  const thumbUrl = (p: PhotoManifestItem) => `/api/photo/${p.thumbnailDriveId}?token=${token}&mfid=${mfid}`
+  const thumbUrl = (p: PhotoManifestItem) => p.thumb ?? `/api/photo/${p.thumbnailDriveId}?token=${token}&mfid=${mfid}`
 
   return (
     <>

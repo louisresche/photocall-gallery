@@ -28,9 +28,9 @@ export default function GalleryPage() {
           to: emailInput,
           galleryUrl: window.location.href,
           eventName: manifest.eventName,
-          // URL absolue : le client mail la charge depuis l'extérieur du site
-          logoUrl: manifest.logoDriveId
-            ? `${window.location.origin}/api/photo/${manifest.logoDriveId}?token=${token}&mfid=${mfid}`
+          // URL absolue et durable : le client mail la charge depuis l'extérieur du site, parfois des jours plus tard
+          logoUrl: manifest.logoKey || manifest.logoDriveId
+            ? `${window.location.origin}/api/logo/${sessionId}?token=${token}`
             : undefined
         })
       })
@@ -137,9 +137,9 @@ export default function GalleryPage() {
       {/* Hero header */}
       <div style={{ background: 'white', borderBottom: '1px solid #e8eaed', padding: '2rem 1.5rem 1.5rem', textAlign: 'center' }}>
         <LangSwitch />
-        {manifest.logoDriveId && (
+        {(manifest.logoUrl || manifest.logoDriveId) && (
           <img
-            src={`/api/photo/${manifest.logoDriveId}?token=${token}&mfid=${mfid}`}
+            src={manifest.logoUrl ?? `/api/photo/${manifest.logoDriveId}?token=${token}&mfid=${mfid}`}
             alt=""
             style={{ maxHeight: 72, maxWidth: 220, objectFit: 'contain', display: 'block', margin: '0 auto 14px' }}
           />

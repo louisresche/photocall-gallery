@@ -16,7 +16,8 @@
     "archiver": "^7.0.1",
     "express": "^4.19.2",
     "nodemailer": "^6.9.14",
-    "tsx": "^4.16.0"
+    "tsx": "^4.16.0",
+    "aws4fetch": "^1.0.20"
   },
   "devDependencies": {
     "@types/archiver": "^6.0.2",

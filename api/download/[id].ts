@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { driveGetJson, driveGetStream, driveResolveManifestId, manifestExpired } from '../_drive.js'
+import { manifestExpired } from '../_drive.js'
+import { loadSessionManifest, photoStream } from '../_store.js'
 import archiver from 'archiver'
 
 function slugify(str: string): string {
@@ -16,10 +17,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!id || !token) return res.status(400).json({ error: 'Missing params' })
 
   try {
-    const manifestId = mfid ? String(mfid) : await driveResolveManifestId(String(id))
-    if (!manifestId) return res.status(404).json({ error: 'not-ready' })
-
-    const manifest = await driveGetJson(manifestId)
+    const found = await loadSessionManifest(String(id), mfid ? String(mfid) : undefined)
+    if (!found) return res.status(404).json({ error: 'not-ready' })
+    const { manifest } = found
     if (manifest.sessionId !== String(id) || manifest.token !== String(token)) return res.status(403).json({ error: 'Invalid token' })
     if (manifestExpired(manifest)) return res.status(410).json({ error: 'expired' })
 
@@ -33,7 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Une photo à la fois, en flux : la mémoire ne dépend pas du nombre de photos
     for (const photo of manifest.photos) {
-      const stream = await driveGetStream(photo.driveFileId)
+      const stream = await photoStream(photo)
       const written = new Promise<void>((resolve) => archive.once('entry', () => resolve()))
       archive.append(stream, { name: photo.filename })
       await written

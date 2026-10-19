@@ -14,6 +14,11 @@ function getRefreshToken(): string | undefined {
   return process.env.GOOGLE_OAUTH_REFRESH_TOKEN
 }
 
+// Galerie hébergée sur R2 seulement : pas d'identifiants Google, le Drive est ignoré
+export function driveConfigured(): boolean {
+  return !!(process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET && getRefreshToken())
+}
+
 // Expiration contraignante : le drapeau posé par l'app OU la date dépassée
 // (couvre le cas où l'app n'est jamais relancée après le délai de rétention)
 export function manifestExpired(manifest: any): boolean {

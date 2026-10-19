@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { driveGetJson, driveGetStream, driveResolveEventManifestId, manifestExpired } from '../_drive.js'
+import { manifestExpired } from '../_drive.js'
+import { loadEventManifest, photoStream } from '../_store.js'
 import archiver from 'archiver'
 
 function slugify(str: string): string {
@@ -11,8 +12,8 @@ function slugify(str: string): string {
     .trim() || 'photos'
 }
 
-// Archive d'un événement entier, assemblée **en flux** : chaque photo est tirée du
-// Drive puis poussée vers le client sans jamais être gardée en mémoire, et la
+// Archive d'un événement entier, assemblée **en flux** : chaque photo est tirée de
+// R2 (ou du Drive) puis poussée vers le client sans jamais être gardée en mémoire, et la
 // suivante n'est demandée qu'une fois la précédente écrite. Le serveur reste donc
 // à quelques mégaoctets d'empreinte, quelle que soit la taille de l'événement.
 //
@@ -23,10 +24,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!id || !token) return res.status(400).json({ error: 'Missing params' })
 
   try {
-    const manifestId = efid ? String(efid) : await driveResolveEventManifestId(String(id))
-    if (!manifestId) return res.status(404).json({ error: 'not-ready' })
-
-    const manifest = await driveGetJson(manifestId)
+    const found = await loadEventManifest(String(id), efid ? String(efid) : undefined)
+    if (!found) return res.status(404).json({ error: 'not-ready' })
+    const { manifest } = found
     if (manifest.eventId !== String(id) || manifest.token !== String(token)) {
       return res.status(403).json({ error: 'Invalid token' })
     }
@@ -60,7 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       used.add(name)
 
-      const stream = await driveGetStream(photo.driveFileId)
+      const stream = await photoStream(photo)
       const written = new Promise<void>((resolve) => archive.once('entry', () => resolve()))
       archive.append(stream, { name })
       await written

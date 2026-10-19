@@ -118,7 +118,7 @@ export default function EventGalleryPage() {
         )}
         {manifest.kind === 'favorites' && (
           <div style={{ marginTop: 6, fontSize: 13, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#b58900' }}>
-            ⭐ {t('bestOf')}
+            {t('bestOf')}
           </div>
         )}
         <div style={{ color: '#9aa0a6', marginTop: 8, fontSize: 14 }}>

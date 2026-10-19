@@ -22,23 +22,31 @@ export default function EventGalleryPage() {
 
   const efid = efidParam || manifest?.efid || ''
 
+  // Rechargée chaque minute et au retour sur l'onglet : la galerie suit les
+  // nouvelles photos, et les liens d'images (valables 24 h au moins) restent frais
   useEffect(() => {
     if (!token) return
     let cancelled = false
-    ;(async () => {
+    let loaded = false     // une fois affichée, un échec passager ne la remplace pas par une erreur
+    const load = async () => {
       try {
         const res = await fetch(`/api/event/${eventId}?token=${token}${efid ? `&efid=${efid}` : ''}`)
         if (cancelled) return
         if (res.status === 410) { nav('/expired'); return }
-        if (res.status === 404) { setState('notready'); return }
-        if (!res.ok) { setError(`Erreur ${res.status}`); setState('error'); return }
+        if (res.status === 404) { if (!loaded) setState('notready'); return }
+        if (!res.ok) { if (!loaded) { setError(`Erreur ${res.status}`); setState('error') } return }
         setManifest(await res.json())
         setState('ok')
+        loaded = true
       } catch (e: any) {
-        if (!cancelled) { setError(e.message); setState('error') }
+        if (!cancelled && !loaded) { setError(e.message); setState('error') }
       }
-    })()
-    return () => { cancelled = true }
+    }
+    void load()
+    const timer = setInterval(load, 60_000)
+    const onVisible = () => { if (document.visibilityState === 'visible') void load() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { cancelled = true; clearInterval(timer); document.removeEventListener('visibilitychange', onVisible) }
   }, [eventId, token, efid])
 
   function submitCode(e: FormEvent) {

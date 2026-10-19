@@ -13,6 +13,9 @@ import { AwsClient, AwsV4Signer } from 'aws4fetch'
 export const sessionManifestKey = (sessionId: string) => `sessions/${sessionId}/manifest.json`
 export const eventGalleryKey = (galleryId: string) => `galleries/${galleryId}.json`
 export const notifyKey = (sessionId: string) => `notify/${sessionId}/${Date.now()}.json`
+export const sessionOverridesKey = (sessionId: string) => `sessions/${sessionId}/overrides.json`
+export const eventSessionsPrefix = (eventId: string) => `events/${encodeURIComponent(eventId)}/sessions/`
+export const eventOverridesPrefix = (eventId: string) => `events/${encodeURIComponent(eventId)}/overrides/`
 
 interface R2Config { accountId: string; accessKeyId: string; secretAccessKey: string; bucket: string }
 
@@ -65,6 +68,26 @@ export async function r2PutJson(key: string, content: object): Promise<void> {
     method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(content)
   })
   if (!res.ok) throw new Error(`R2 error ${res.status}`)
+}
+
+// Clés sous un préfixe (pages de 1 000)
+export async function r2List(prefix: string): Promise<string[]> {
+  const c = r2Config()
+  if (!c) return []
+  const base = objectUrl(c, '').replace(/\/$/, '')
+  const keys: string[] = []
+  let token = ''
+  const decode = (s: string) => s.replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
+  do {
+    const qs = new URLSearchParams({ 'list-type': '2', prefix })
+    if (token) qs.set('continuation-token', token)
+    const res = await client(c).fetch(`${base}?${qs}`)
+    if (!res.ok) throw new Error(`R2 error ${res.status}`)
+    const xml = await res.text()
+    for (const m of xml.matchAll(/<Key>([^<]*)<\/Key>/g)) keys.push(decode(m[1]))
+    token = /<IsTruncated>true<\/IsTruncated>/.test(xml) ? decode(xml.match(/<NextContinuationToken>([^<]*)<\/NextContinuationToken>/)?.[1] ?? '') : ''
+  } while (token)
+  return keys
 }
 
 // Flux d'octets (archives ZIP, enregistrement d'une photo depuis la galerie)

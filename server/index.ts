@@ -4,6 +4,7 @@ import express from 'express'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { attachLive } from './live.js'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const DIST = join(ROOT, 'dist')
@@ -115,7 +116,10 @@ app.get('*', (_req, res) => {
   res.sendFile(join(DIST, 'index.html'))
 })
 
-app.listen(PORT, () => {
-  console.log(`PhotoCall gallery en écoute sur le port ${PORT}`)
+const server = app.listen(PORT, () => {
+  console.log(`SnapMe gallery en écoute sur le port ${PORT}`)
   if (!ADMIN_TOKEN) console.warn('⚠ ADMIN_TOKEN absent : la synchro du jeton Drive depuis l\'app est désactivée')
 })
+
+// Relais temps réel entre les ordinateurs d'un même événement (synchronisation multi-postes)
+attachLive(server)

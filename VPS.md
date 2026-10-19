@@ -94,6 +94,8 @@ Trois options, de la plus simple à la plus lourde :
 | `GOOGLE_OAUTH_REFRESH_TOKEN` | valeur initiale quelconque, ou vide : l'app la poussera via `ADMIN_TOKEN` |
 | `ADMIN_TOKEN` | une valeur aléatoire longue : `openssl rand -hex 32` |
 | `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | facultatif, photos sur Cloudflare R2 : laissez vide, l'app les envoie via `ADMIN_TOKEN` (Réglages → Stockage) |
+
+Le serveur sert aussi **`/api/live`** (WebSocket) : le relais temps réel entre les ordinateurs SnapMe d'un même événement. Il ne fonctionne qu'une fois les identifiants R2 envoyés par l'app (ils servent à authentifier les ordinateurs). Caddy et Traefik transmettent les WebSocket sans réglage particulier.
 | Emails | `RESEND_API_KEY` **ou** `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASS`/`SMTP_FROM` (le SMTP de n'importe quelle boîte mail existante fonctionne : OVH, Gmail, Brevo…) |
 
 ## Relier PhotoCall

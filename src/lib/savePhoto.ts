@@ -53,3 +53,46 @@ export async function savePhoto(url: string, filename: string): Promise<void> {
 
   downloadViaLink(url, filename)
 }
+
+// Partage d'une photo vers une application (story Instagram, WhatsApp, Messenger…).
+//
+// Le web ne peut pas publier directement dans une story : seule la feuille de
+// partage du téléphone, qui reçoit le fichier image, propose Instagram (« Story »,
+// « Publication », « Message ») et les autres applications installées. Sur
+// ordinateur elle n'existe pas : on télécharge la photo et on le dit à l'invité.
+//
+// Safari exige que la feuille s'ouvre peu après le toucher : si le téléchargement
+// de la photo a été trop long, le partage est refusé. La photo reste alors en
+// mémoire et le toucher suivant l'ouvre immédiatement.
+export type ShareResult = 'shared' | 'cancelled' | 'retry' | 'downloaded'
+
+const ready = new Map<string, File>()
+
+export async function sharePhoto(url: string, filename: string): Promise<ShareResult> {
+  if (!canShareFiles()) {
+    downloadViaLink(url, filename)
+    return 'downloaded'
+  }
+  let file = ready.get(url)
+  if (!file) {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(String(res.status))
+    const blob = await res.blob()
+    file = new File([blob], filename, { type: blob.type || 'image/jpeg' })
+    if (ready.size >= 6) ready.clear()
+    ready.set(url, file)
+  }
+  if (!navigator.canShare({ files: [file] })) {
+    downloadViaLink(url, filename)
+    return 'downloaded'
+  }
+  try {
+    await navigator.share({ files: [file] })
+    return 'shared'
+  } catch (err) {
+    const name = (err as Error)?.name
+    if (name === 'AbortError') return 'cancelled'
+    if (name === 'NotAllowedError') return 'retry'
+    throw err
+  }
+}

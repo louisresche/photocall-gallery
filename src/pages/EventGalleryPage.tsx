@@ -133,9 +133,17 @@ export default function EventGalleryPage() {
           {createdAt} · {t('photoCount', { n: manifest.photos.length })}
           {manifest.kind !== 'favorites' && <> · {t('sessionCount', { n: manifest.sessionCount })}</>}
         </div>
+      </div>
 
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '1.5rem 1rem 3rem' }}>
+        {!!manifest.pendingCount && manifest.pendingCount > 0 && (
+          <div style={{ background: '#fef7e0', border: '1px solid #fdd663', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#5f6368', textAlign: 'center' }}>
+            {t('uploadingPartial', { n: manifest.pendingCount })}
+          </div>
+        )}
+        <PhotoGrid photos={manifest.photos} token={token} mfid={efid} />
         {manifest.photos.length > 0 && (
-          <div style={{ marginTop: 20 }}>
+          <div style={{ marginTop: 28, textAlign: 'center' }}>
             <a
               href={`/api/event-download/${manifest.eventId}?token=${token}&efid=${efid}`}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px', background: '#202124', color: 'white', borderRadius: 24, textDecoration: 'none', fontWeight: 600, fontSize: 14 }}
@@ -147,15 +155,6 @@ export default function EventGalleryPage() {
             </div>
           </div>
         )}
-      </div>
-
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '1.5rem 1rem 3rem' }}>
-        {!!manifest.pendingCount && manifest.pendingCount > 0 && (
-          <div style={{ background: '#fef7e0', border: '1px solid #fdd663', borderRadius: 10, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#5f6368', textAlign: 'center' }}>
-            {t('uploadingPartial', { n: manifest.pendingCount })}
-          </div>
-        )}
-        <PhotoGrid photos={manifest.photos} token={token} mfid={efid} />
       </div>
 
       <div style={{ textAlign: 'center', padding: '0 2rem 2rem', color: '#bdc1c6', fontSize: 12 }}>

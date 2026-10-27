@@ -3,6 +3,7 @@ import { useGallery } from '../hooks/useGallery'
 import PhotoGrid from '../components/PhotoGrid'
 import DownloadButton from '../components/DownloadButton'
 import NotifyForm from '../components/NotifyForm'
+import ShareMenu from '../components/ShareMenu'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useLang, LangSwitch } from '../lib/i18n'
 
@@ -13,35 +14,6 @@ export default function GalleryPage() {
   const mfidParam = params.get('mfid') ?? ''
   const nav = useNavigate()
   const { t, locale } = useLang()
-  const [emailInput, setEmailInput] = useState('')
-  const [emailState, setEmailState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
-
-  async function handleSendEmail(e: FormEvent) {
-    e.preventDefault()
-    if (!emailInput || !manifest) return
-    setEmailState('sending')
-    try {
-      const r = await fetch('/api/send-link', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: emailInput,
-          galleryUrl: window.location.href,
-          eventName: manifest.eventName,
-          // URL absolue et durable : le client mail la charge depuis l'extérieur du site, parfois des jours plus tard
-          logoUrl: manifest.logoKey || manifest.logoDriveId
-            ? `${window.location.origin}/api/logo/${sessionId}?token=${token}`
-            : undefined
-        })
-      })
-      setEmailState(r.ok ? 'sent' : 'error')
-      if (r.ok) {
-        setEmailInput('')
-        setTimeout(() => setEmailState('idle'), 8000)
-      }
-    } catch { setEmailState('error') }
-  }
-
   const { manifest, expired, notReady, error, mfid } = useGallery(sessionId!, token, mfidParam)
   const [codeInput, setCodeInput] = useState('')
 
@@ -151,40 +123,12 @@ export default function GalleryPage() {
           {createdAt} · {t('photoCount', { n: manifest.photos.length })}
         </div>
         {manifest.photos.length > 0 && (
-          <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <DownloadButton sessionId={sessionId!} token={token} mfid={mfid} eventName={manifest.eventName} />
-            </div>
-            <form onSubmit={handleSendEmail} style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <input
-                type="email"
-                value={emailInput}
-                onChange={e => { setEmailInput(e.target.value); setEmailState('idle') }}
-                placeholder={t('sharePlaceholder')}
-                required
-                style={{ border: '1.5px solid #dadce0', borderRadius: 24, padding: '10px 18px', fontSize: 14, outline: 'none', minWidth: 240 }}
-              />
-              <button
-                type="submit"
-                disabled={emailState === 'sending'}
-                style={{
-                  padding: '10px 22px', borderRadius: 24, border: 'none', cursor: 'pointer',
-                  fontWeight: 600, fontSize: 14,
-                  background: emailState === 'sent' ? '#137333' : '#202124',
-                  color: 'white', transition: 'background 0.2s'
-                }}
-              >
-                {emailState === 'sending' ? t('sending') : emailState === 'sent' ? t('sent') : t('send')}
-              </button>
-            </form>
-            {emailState === 'error' && (
-              <div style={{ fontSize: 13, color: '#c5221f' }}>{t('sendError')}</div>
-            )}
-            {emailState === 'sent' ? (
-              <div style={{ fontSize: 13, color: '#137333' }}>{t('sentHint')}</div>
-            ) : (
-              <div style={{ fontSize: 11, color: '#bdc1c6' }}>{t('spamHint')}</div>
-            )}
+          <div style={{ marginTop: 20 }}>
+            <ShareMenu
+              galleryUrl={window.location.href}
+              eventName={manifest.eventName}
+              logoUrl={manifest.logoKey || manifest.logoDriveId ? `${window.location.origin}/api/logo/${sessionId}?token=${token}` : undefined}
+            />
           </div>
         )}
       </div>
@@ -206,6 +150,9 @@ export default function GalleryPage() {
               </div>
             )}
             <PhotoGrid photos={manifest.photos} token={token} mfid={mfid} />
+            <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
+              <DownloadButton sessionId={sessionId!} token={token} mfid={mfid} eventName={manifest.eventName} />
+            </div>
           </>
         )}
       </div>

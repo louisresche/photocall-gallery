@@ -74,9 +74,10 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl, openUp }: Pr
   const links: { label: string; href: string; Icon: IconType; color: string; mobileOnly?: boolean; copyFirst?: boolean }[] = [
     { label: 'WhatsApp', href: `https://wa.me/?text=${enc(message)}`, Icon: FaWhatsapp, color: '#25d366' },
     { label: 'Messenger', href: `fb-messenger://share/?link=${enc(galleryUrl)}`, Icon: FaFacebookMessenger, color: '#0866ff', mobileOnly: true },
-    // Instagram n'accepte pas de texte pré-rempli : une fenêtre explique la marche
-    // à suivre, puis copie le lien et ouvre les messages Instagram pour le coller
-    { label: 'Instagram', href: 'https://www.instagram.com/direct/inbox/', Icon: FaInstagram, color: '#e1306c', copyFirst: true },
+    // Instagram n'accepte pas de texte pré-rempli et aucun lien n'ouvre de façon
+    // fiable ses messages : une fenêtre explique la marche à suivre, puis copie le
+    // lien et ouvre l'application (son accueil) pour le coller dans une conversation
+    { label: 'Instagram', href: 'https://www.instagram.com/', Icon: FaInstagram, color: '#e1306c', copyFirst: true },
     { label: 'Telegram', href: `https://t.me/share/url?url=${enc(galleryUrl)}&text=${enc(text)}`, Icon: FaTelegram, color: '#26a5e4' },
     // « ?& » : seule syntaxe que comprennent à la fois iOS et Android
     { label: t('shareSms'), href: `sms:?&body=${enc(message)}`, Icon: LuMessageSquare, color: '#5f6368', mobileOnly: true }
@@ -192,7 +193,7 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl, openUp }: Pr
               <li>{t('instagramStep3')}</li>
             </ol>
             <a
-              href="https://www.instagram.com/direct/inbox/"
+              href="https://www.instagram.com/"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => {

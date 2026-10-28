@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
+import { LuDownload } from 'react-icons/lu'
 import PhotoGrid from '../components/PhotoGrid'
 import type { EventManifest } from '../types'
 import { useLang, LangSwitch } from '../lib/i18n'
@@ -148,7 +149,7 @@ export default function EventGalleryPage() {
               href={`/api/event-download/${manifest.eventId}?token=${token}&efid=${efid}`}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px', background: '#202124', color: 'white', borderRadius: 24, textDecoration: 'none', fontWeight: 600, fontSize: 14 }}
             >
-              ↓ {t('downloadEvent')}
+              <LuDownload size={16} />{t('downloadEvent')}
             </a>
             <div style={{ fontSize: 11, color: '#9aa0a6', marginTop: 10, lineHeight: 1.5, maxWidth: 420, margin: '10px auto 0' }}>
               {t('streamNote')}

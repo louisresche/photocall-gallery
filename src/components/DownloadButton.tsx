@@ -1,3 +1,4 @@
+import { LuDownload } from 'react-icons/lu'
 import { useLang } from '../lib/i18n'
 
 interface Props { sessionId: string; token: string; mfid: string; eventName?: string }
@@ -12,7 +13,7 @@ export default function DownloadButton({ sessionId, token, mfid }: Props) {
         borderRadius: 24, textDecoration: 'none', fontWeight: 600, fontSize: 14
       }}
     >
-      ↓ {t('downloadAll')}
+      <LuDownload size={16} />{t('downloadAll')}
     </a>
   )
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { PhotoManifestItem } from '../types'
 import { savePhoto, sharePhoto } from '../lib/savePhoto'
+import { LuDownload, LuShare } from 'react-icons/lu'
 import { useLang } from '../lib/i18n'
 
 interface Props { photos: PhotoManifestItem[]; token: string; mfid: string }
@@ -57,9 +58,9 @@ function PhotoLightbox({ photos, index, token, mfid, onClose, onNav, onShare }: 
         <button
           type="button"
           onClick={e => { e.stopPropagation(); onShare(photo) }}
-          style={{ background: 'rgba(255,255,255,0.15)', color: 'white', padding: '10px 24px', borderRadius: 24, border: '1px solid rgba(255,255,255,0.4)', cursor: 'pointer', fontWeight: 700, fontSize: 14 }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.15)', color: 'white', padding: '10px 24px', borderRadius: 24, border: '1px solid rgba(255,255,255,0.4)', cursor: 'pointer', fontWeight: 700, fontSize: 14 }}
         >
-          {t('sharePhoto')}
+          <LuShare size={16} />{t('sharePhoto')}
         </button>
       </div>
 
@@ -71,8 +72,10 @@ function PhotoLightbox({ photos, index, token, mfid, onClose, onNav, onShare }: 
   )
 }
 
+// Boutons accolés sous la photo : ils prolongent la carte jusqu'à ses coins arrondis du bas
 const actionBtn: React.CSSProperties = {
-  flex: 1, padding: '7px 0', borderRadius: 18, border: '1px solid #dadce0', background: 'white',
+  flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+  padding: '9px 0', border: 'none', borderRadius: 0, background: 'white',
   color: '#202124', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit'
 }
 
@@ -106,25 +109,22 @@ export default function PhotoGrid({ photos, token, mfid }: Props) {
         gap: 14
       }}>
         {photos.map((p, i) => (
-          <div key={p.id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div
-              onClick={() => setSelectedIdx(i)}
-              style={{
-                borderRadius: 8, overflow: 'hidden', cursor: 'pointer',
-                background: '#e8eaed', aspectRatio: '4/3',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                transition: 'transform 0.15s, box-shadow 0.15s',
-                position: 'relative'
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.transform = 'scale(1.02)'
-                ;(e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)'
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLElement).style.transform = 'scale(1)'
-                ;(e.currentTarget as HTMLElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)'
-              }}
-            >
+          <div
+            key={p.id}
+            style={{
+              display: 'flex', flexDirection: 'column', borderRadius: 8, overflow: 'hidden', background: 'white',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.08)', transition: 'transform 0.15s, box-shadow 0.15s'
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'scale(1.02)'
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.15)'
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'scale(1)'
+              e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)'
+            }}
+          >
+            <div onClick={() => setSelectedIdx(i)} style={{ cursor: 'pointer', background: '#e8eaed', aspectRatio: '4/3' }}>
               <img
                 src={thumbUrl(p)}
                 alt={p.filename}
@@ -132,9 +132,13 @@ export default function PhotoGrid({ photos, token, mfid }: Props) {
                 loading="lazy"
               />
             </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button type="button" style={actionBtn} onClick={() => void savePhoto(saveUrl(p), p.filename)}>{t('downloadPhoto')}</button>
-              <button type="button" style={actionBtn} onClick={() => void share(p)}>{t('sharePhoto')}</button>
+            <div style={{ display: 'flex', borderTop: '1px solid #e8eaed' }}>
+              <button type="button" style={actionBtn} onClick={() => void savePhoto(saveUrl(p), p.filename)}>
+                <LuDownload size={16} />{t('downloadPhoto')}
+              </button>
+              <button type="button" style={{ ...actionBtn, borderLeft: '1px solid #e8eaed' }} onClick={() => void share(p)}>
+                <LuShare size={16} />{t('sharePhoto')}
+              </button>
             </div>
           </div>
         ))}

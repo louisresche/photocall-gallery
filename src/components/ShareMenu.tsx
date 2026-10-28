@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import type { IconType } from 'react-icons'
+import { FaWhatsapp, FaFacebookMessenger, FaTelegram } from 'react-icons/fa6'
+import { LuMail, LuMessageSquare, LuLink, LuCheck, LuShare2, LuEllipsis, LuChevronDown } from 'react-icons/lu'
 import { useLang } from '../lib/i18n'
 
 interface Props {
@@ -9,9 +12,11 @@ interface Props {
 }
 
 const item: React.CSSProperties = {
-  display: 'block', width: '100%', textAlign: 'left', padding: '11px 16px', border: 'none', background: 'white',
+  display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left', padding: '11px 16px', border: 'none', background: 'white',
   color: '#202124', fontSize: 14, cursor: 'pointer', textDecoration: 'none', fontFamily: 'inherit', boxSizing: 'border-box'
 }
+
+const icon = 20
 
 function isMobile(): boolean {
   return window.matchMedia?.('(pointer: coarse)').matches ?? false
@@ -39,12 +44,12 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl }: Props) {
   const text = t('shareText', { event: eventName })
   const message = `${text} : ${galleryUrl}`
   const enc = encodeURIComponent
-  const links: { label: string; href: string; mobileOnly?: boolean }[] = [
-    { label: '🟢 WhatsApp', href: `https://wa.me/?text=${enc(message)}` },
-    { label: '🔵 Messenger', href: `fb-messenger://share/?link=${enc(galleryUrl)}`, mobileOnly: true },
-    { label: '✈️ Telegram', href: `https://t.me/share/url?url=${enc(galleryUrl)}&text=${enc(text)}` },
+  const links: { label: string; href: string; Icon: IconType; color: string; mobileOnly?: boolean }[] = [
+    { label: 'WhatsApp', href: `https://wa.me/?text=${enc(message)}`, Icon: FaWhatsapp, color: '#25d366' },
+    { label: 'Messenger', href: `fb-messenger://share/?link=${enc(galleryUrl)}`, Icon: FaFacebookMessenger, color: '#0866ff', mobileOnly: true },
+    { label: 'Telegram', href: `https://t.me/share/url?url=${enc(galleryUrl)}&text=${enc(text)}`, Icon: FaTelegram, color: '#26a5e4' },
     // « ?& » : seule syntaxe que comprennent à la fois iOS et Android
-    { label: t('shareSms'), href: `sms:?&body=${enc(message)}`, mobileOnly: true }
+    { label: t('shareSms'), href: `sms:?&body=${enc(message)}`, Icon: LuMessageSquare, color: '#5f6368', mobileOnly: true }
   ]
   const nativeShare = typeof navigator !== 'undefined' && !!navigator.share && isMobile()
 
@@ -80,15 +85,17 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl }: Props) {
         type="button"
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
-        style={{ padding: '10px 24px', borderRadius: 24, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, background: '#202124', color: 'white', fontFamily: 'inherit' }}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px 10px 24px', borderRadius: 24, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, background: '#202124', color: 'white', fontFamily: 'inherit' }}
       >
-        {t('shareGallery')} {open ? '▴' : '▾'}
+        <LuShare2 size={16} />
+        {t('shareGallery')}
+        <LuChevronDown size={16} style={{ transition: 'transform 0.15s', transform: open ? 'rotate(180deg)' : 'none' }} />
       </button>
 
       {open && (
         <div style={{ position: 'absolute', top: '100%', marginTop: 6, zIndex: 50, width: 260, background: 'white', border: '1px solid #e8eaed', borderRadius: 12, boxShadow: '0 6px 24px rgba(0,0,0,0.15)', overflow: 'hidden', textAlign: 'left' }}>
           <button type="button" style={{ ...item, fontWeight: emailOpen ? 700 : 400 }} onClick={() => setEmailOpen(o => !o)}>
-            {t('shareByEmail')}
+            <LuMail size={icon} color="#5f6368" />{t('shareByEmail')}
           </button>
           {emailOpen && (
             <form onSubmit={sendEmail} style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -115,10 +122,11 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl }: Props) {
           )}
           {links.filter(l => !l.mobileOnly || isMobile()).map(l => (
             <a key={l.label} href={l.href} target={l.href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" style={{ ...item, borderTop: '1px solid #f1f3f4' }} onClick={() => setOpen(false)}>
-              {l.label}
+              <l.Icon size={icon} color={l.color} />{l.label}
             </a>
           ))}
           <button type="button" style={{ ...item, borderTop: '1px solid #f1f3f4', color: copied ? '#137333' : '#202124' }} onClick={() => void copyLink()}>
+            {copied ? <LuCheck size={icon} color="#137333" /> : <LuLink size={icon} color="#5f6368" />}
             {copied ? t('linkCopied') : t('copyLink')}
           </button>
           {nativeShare && (
@@ -127,7 +135,7 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl }: Props) {
               style={{ ...item, borderTop: '1px solid #f1f3f4' }}
               onClick={() => { setOpen(false); navigator.share({ title: eventName, text, url: galleryUrl }).catch(() => {}) }}
             >
-              {t('moreApps')}
+              <LuEllipsis size={icon} color="#5f6368" />{t('moreApps')}
             </button>
           )}
         </div>

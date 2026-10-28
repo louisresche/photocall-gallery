@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { IconType } from 'react-icons'
-import { FaWhatsapp, FaFacebookMessenger, FaTelegram } from 'react-icons/fa6'
+import { FaWhatsapp, FaFacebookMessenger, FaTelegram, FaInstagram } from 'react-icons/fa6'
 import { LuMail, LuMessageSquare, LuLink, LuCheck, LuShare2, LuEllipsis, LuChevronDown } from 'react-icons/lu'
 import { useLang } from '../lib/i18n'
 
@@ -9,6 +9,8 @@ interface Props {
   eventName: string
   // URL absolue du logo pour l'email (le client mail la charge depuis l'extérieur du site)
   logoUrl?: string
+  // Menu ouvert vers le haut (bouton placé en bas de page)
+  openUp?: boolean
 }
 
 const item: React.CSSProperties = {
@@ -18,19 +20,43 @@ const item: React.CSSProperties = {
 
 const icon = 20
 
+// Copie dans le presse-papiers. L'API moderne est absente ou refusée dans
+// certains navigateurs intégrés (lecteurs de QR code, Instagram, Messenger…) :
+// on retombe alors sur l'ancienne méthode du champ texte sélectionné.
+async function copyText(value: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(value)
+    return true
+  } catch {
+    const field = document.createElement('textarea')
+    field.value = value
+    field.setAttribute('readonly', '')
+    field.style.position = 'fixed'
+    field.style.opacity = '0'
+    document.body.appendChild(field)
+    field.select()
+    field.setSelectionRange(0, value.length)
+    let ok = false
+    try { ok = document.execCommand('copy') } catch { /* rien de plus à tenter */ }
+    field.remove()
+    return ok
+  }
+}
+
 function isMobile(): boolean {
   return window.matchMedia?.('(pointer: coarse)').matches ?? false
 }
 
 // Partage du lien de la galerie : email (envoyé par le serveur), messageries,
 // copie du lien, ou feuille de partage du téléphone pour toutes les autres applis.
-export default function ShareMenu({ galleryUrl, eventName, logoUrl }: Props) {
+export default function ShareMenu({ galleryUrl, eventName, logoUrl, openUp }: Props) {
   const { t } = useLang()
   const [open, setOpen] = useState(false)
   const [emailOpen, setEmailOpen] = useState(false)
   const [emailInput, setEmailInput] = useState('')
   const [emailState, setEmailState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [copied, setCopied] = useState(false)
+  const [notice, setNotice] = useState('')
   const ref = useRef<HTMLDivElement>(null)
 
   // Clic en dehors du menu : on le referme
@@ -44,9 +70,12 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl }: Props) {
   const text = t('shareText', { event: eventName })
   const message = `${text} : ${galleryUrl}`
   const enc = encodeURIComponent
-  const links: { label: string; href: string; Icon: IconType; color: string; mobileOnly?: boolean }[] = [
+  const links: { label: string; href: string; Icon: IconType; color: string; mobileOnly?: boolean; copyFirst?: boolean }[] = [
     { label: 'WhatsApp', href: `https://wa.me/?text=${enc(message)}`, Icon: FaWhatsapp, color: '#25d366' },
     { label: 'Messenger', href: `fb-messenger://share/?link=${enc(galleryUrl)}`, Icon: FaFacebookMessenger, color: '#0866ff', mobileOnly: true },
+    // Instagram n'accepte pas de texte pré-rempli : on copie le lien, puis on ouvre
+    // les messages Instagram (l'application si elle est installée) pour le coller
+    { label: 'Instagram', href: 'https://www.instagram.com/direct/inbox/', Icon: FaInstagram, color: '#e1306c', copyFirst: true },
     { label: 'Telegram', href: `https://t.me/share/url?url=${enc(galleryUrl)}&text=${enc(text)}`, Icon: FaTelegram, color: '#26a5e4' },
     // « ?& » : seule syntaxe que comprennent à la fois iOS et Android
     { label: t('shareSms'), href: `sms:?&body=${enc(message)}`, Icon: LuMessageSquare, color: '#5f6368', mobileOnly: true }
@@ -71,12 +100,18 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl }: Props) {
     } catch { setEmailState('error') }
   }
 
+  function flash(text: string) {
+    setNotice(text)
+    setTimeout(() => setNotice(n => n === text ? '' : n), 8000)
+  }
+
   async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(galleryUrl)
+    if (await copyText(galleryUrl)) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2500)
-    } catch { /* presse-papiers refusé : rien à faire de plus */ }
+    } else {
+      flash(t('copyFailed'))
+    }
   }
 
   return (
@@ -89,11 +124,11 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl }: Props) {
       >
         <LuShare2 size={16} />
         {t('shareGallery')}
-        <LuChevronDown size={16} style={{ transition: 'transform 0.15s', transform: open ? 'rotate(180deg)' : 'none' }} />
+        <LuChevronDown size={16} style={{ transition: 'transform 0.15s', transform: open !== !!openUp ? 'rotate(180deg)' : 'none' }} />
       </button>
 
       {open && (
-        <div style={{ position: 'absolute', top: '100%', marginTop: 6, zIndex: 50, width: 260, background: 'white', border: '1px solid #e8eaed', borderRadius: 12, boxShadow: '0 6px 24px rgba(0,0,0,0.15)', overflow: 'hidden', textAlign: 'left' }}>
+        <div style={{ position: 'absolute', ...(openUp ? { bottom: '100%', marginBottom: 6 } : { top: '100%', marginTop: 6 }), zIndex: 50, width: 260, background: 'white', border: '1px solid #e8eaed', borderRadius: 12, boxShadow: '0 6px 24px rgba(0,0,0,0.15)', overflow: 'hidden', textAlign: 'left' }}>
           <button type="button" style={{ ...item, fontWeight: emailOpen ? 700 : 400 }} onClick={() => setEmailOpen(o => !o)}>
             <LuMail size={icon} color="#5f6368" />{t('shareByEmail')}
           </button>
@@ -121,7 +156,10 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl }: Props) {
             </form>
           )}
           {links.filter(l => !l.mobileOnly || isMobile()).map(l => (
-            <a key={l.label} href={l.href} target={l.href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" style={{ ...item, borderTop: '1px solid #f1f3f4' }} onClick={() => setOpen(false)}>
+            <a key={l.label} href={l.href} target={l.href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" style={{ ...item, borderTop: '1px solid #f1f3f4' }} onClick={() => {
+              setOpen(false)
+              if (l.copyFirst) void copyText(galleryUrl).then(ok => flash(t(ok ? 'instagramHint' : 'copyFailed')))
+            }}>
               <l.Icon size={icon} color={l.color} />{l.label}
             </a>
           ))}
@@ -137,6 +175,16 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl }: Props) {
             >
               <LuEllipsis size={icon} color="#5f6368" />{t('moreApps')}
             </button>
+          )}
+        </div>
+      )}
+
+      {notice && (
+        <div role="status" style={{ fontSize: 12, color: '#5f6368', maxWidth: 300, lineHeight: 1.5, textAlign: 'center' }}>
+          {notice}
+          {notice === t('copyFailed') && (
+            <input readOnly value={galleryUrl} onFocus={e => e.currentTarget.select()}
+              style={{ display: 'block', width: '100%', marginTop: 6, border: '1px solid #dadce0', borderRadius: 8, padding: '6px 8px', fontSize: 12, boxSizing: 'border-box' }} />
           )}
         </div>
       )}

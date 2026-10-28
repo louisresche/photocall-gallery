@@ -122,15 +122,6 @@ export default function GalleryPage() {
         <div style={{ color: '#9aa0a6', marginTop: 8, fontSize: 14 }}>
           {createdAt} · {t('photoCount', { n: manifest.photos.length })}
         </div>
-        {manifest.photos.length > 0 && (
-          <div style={{ marginTop: 20 }}>
-            <ShareMenu
-              galleryUrl={window.location.href}
-              eventName={manifest.eventName}
-              logoUrl={manifest.logoKey || manifest.logoDriveId ? `${window.location.origin}/api/logo/${sessionId}?token=${token}` : undefined}
-            />
-          </div>
-        )}
       </div>
 
       {/* Photo grid */}
@@ -150,8 +141,14 @@ export default function GalleryPage() {
               </div>
             )}
             <PhotoGrid photos={manifest.photos} token={token} mfid={mfid} />
-            <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
+            <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap' }}>
               <DownloadButton sessionId={sessionId!} token={token} mfid={mfid} eventName={manifest.eventName} />
+              <ShareMenu
+                openUp
+                galleryUrl={window.location.href}
+                eventName={manifest.eventName}
+                logoUrl={manifest.logoKey || manifest.logoDriveId ? `${window.location.origin}/api/logo/${sessionId}?token=${token}` : undefined}
+              />
             </div>
           </>
         )}

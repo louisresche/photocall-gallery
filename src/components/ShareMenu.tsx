@@ -57,6 +57,7 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl, openUp }: Pr
   const [emailState, setEmailState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [copied, setCopied] = useState(false)
   const [notice, setNotice] = useState('')
+  const [instagramOpen, setInstagramOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   // Clic en dehors du menu : on le referme
@@ -73,8 +74,8 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl, openUp }: Pr
   const links: { label: string; href: string; Icon: IconType; color: string; mobileOnly?: boolean; copyFirst?: boolean }[] = [
     { label: 'WhatsApp', href: `https://wa.me/?text=${enc(message)}`, Icon: FaWhatsapp, color: '#25d366' },
     { label: 'Messenger', href: `fb-messenger://share/?link=${enc(galleryUrl)}`, Icon: FaFacebookMessenger, color: '#0866ff', mobileOnly: true },
-    // Instagram n'accepte pas de texte pré-rempli : on copie le lien, puis on ouvre
-    // les messages Instagram (l'application si elle est installée) pour le coller
+    // Instagram n'accepte pas de texte pré-rempli : une fenêtre explique la marche
+    // à suivre, puis copie le lien et ouvre les messages Instagram pour le coller
     { label: 'Instagram', href: 'https://www.instagram.com/direct/inbox/', Icon: FaInstagram, color: '#e1306c', copyFirst: true },
     { label: 'Telegram', href: `https://t.me/share/url?url=${enc(galleryUrl)}&text=${enc(text)}`, Icon: FaTelegram, color: '#26a5e4' },
     // « ?& » : seule syntaxe que comprennent à la fois iOS et Android
@@ -156,9 +157,9 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl, openUp }: Pr
             </form>
           )}
           {links.filter(l => !l.mobileOnly || isMobile()).map(l => (
-            <a key={l.label} href={l.href} target={l.href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" style={{ ...item, borderTop: '1px solid #f1f3f4' }} onClick={() => {
+            <a key={l.label} href={l.href} target={l.href.startsWith('http') ? '_blank' : undefined} rel="noopener noreferrer" style={{ ...item, borderTop: '1px solid #f1f3f4' }} onClick={e => {
               setOpen(false)
-              if (l.copyFirst) void copyText(galleryUrl).then(ok => flash(t(ok ? 'instagramHint' : 'copyFailed')))
+              if (l.copyFirst) { e.preventDefault(); setInstagramOpen(true) }
             }}>
               <l.Icon size={icon} color={l.color} />{l.label}
             </a>
@@ -176,6 +177,37 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl, openUp }: Pr
               <LuEllipsis size={icon} color="#5f6368" />{t('moreApps')}
             </button>
           )}
+        </div>
+      )}
+
+      {instagramOpen && (
+        <div onClick={() => setInstagramOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 1200, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}
+            style={{ background: 'white', borderRadius: 16, padding: '24px 22px 18px', maxWidth: 360, width: '100%', textAlign: 'center', boxShadow: '0 10px 40px rgba(0,0,0,0.3)' }}>
+            <FaInstagram size={40} color="#e1306c" />
+            <div style={{ fontSize: 18, fontWeight: 800, color: '#202124', margin: '10px 0 8px' }}>{t('instagramTitle')}</div>
+            <ol style={{ textAlign: 'left', fontSize: 14, color: '#3c4043', lineHeight: 1.6, margin: '0 0 18px', paddingLeft: 22 }}>
+              <li>{t('instagramStep1')}</li>
+              <li>{t('instagramStep2')}</li>
+              <li>{t('instagramStep3')}</li>
+            </ol>
+            <a
+              href="https://www.instagram.com/direct/inbox/"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => {
+                setInstagramOpen(false)
+                void copyText(galleryUrl).then(ok => flash(t(ok ? 'instagramHint' : 'copyFailed')))
+              }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px 0', borderRadius: 24, color: 'white', fontWeight: 700, fontSize: 15, textDecoration: 'none', background: 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }}
+            >
+              <LuLink size={16} />{t('instagramGo')}
+            </a>
+            <button type="button" onClick={() => setInstagramOpen(false)}
+              style={{ marginTop: 8, border: 'none', background: 'none', color: '#5f6368', fontSize: 14, padding: 8, cursor: 'pointer', fontFamily: 'inherit' }}>
+              {t('cancel')}
+            </button>
+          </div>
         </div>
       )}
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { IconType } from 'react-icons'
 import { FaWhatsapp, FaFacebookMessenger, FaTelegram, FaInstagram } from 'react-icons/fa6'
-import { LuMail, LuMessageSquare, LuLink, LuCheck, LuShare2, LuEllipsis, LuChevronDown } from 'react-icons/lu'
+import { LuMail, LuMessageSquare, LuLink, LuCheck, LuShare, LuEllipsis, LuChevronDown } from 'react-icons/lu'
 import { useLang } from '../lib/i18n'
 
 interface Props {
@@ -124,7 +124,7 @@ export default function ShareMenu({ galleryUrl, eventName, logoUrl, openUp }: Pr
         aria-expanded={open}
         style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 20px 10px 24px', borderRadius: 24, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 14, background: '#202124', color: 'white', fontFamily: 'inherit' }}
       >
-        <LuShare2 size={16} />
+        <LuShare size={16} />
         {t('shareGallery')}
         <LuChevronDown size={16} style={{ transition: 'transform 0.15s', transform: open !== !!openUp ? 'rotate(180deg)' : 'none' }} />
       </button>

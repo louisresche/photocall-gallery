@@ -51,9 +51,9 @@ function PhotoLightbox({ photos, index, token, mfid, onClose, onNav, onShare }: 
         <button
           type="button"
           onClick={e => { e.stopPropagation(); void savePhoto(photo.save ?? fullUrl, photo.filename) }}
-          style={{ background: 'white', color: '#202124', padding: '10px 24px', borderRadius: 24, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14 }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'white', color: '#202124', padding: '10px 24px', borderRadius: 24, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14 }}
         >
-          {t('save')}
+          <LuDownload size={16} />{t('downloadPhoto')}
         </button>
         <button
           type="button"

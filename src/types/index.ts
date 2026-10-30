@@ -15,6 +15,10 @@ export interface SessionManifest {
   logoUrl?: string     // adresse du logo calculée par le serveur
   pendingCount?: number // Photos prises mais pas encore téléversées
   contactEmail?: string
+  // En-tête choisi pour l'événement : nom public, titre et logo masquables
+  displayName?: string
+  hideTitle?: boolean
+  hideLogo?: boolean
 }
 
 export interface EventManifest {
@@ -30,4 +34,13 @@ export interface EventManifest {
   logoUrl?: string
   pendingCount?: number
   contactEmail?: string
+  // En-tête choisi pour l'événement : nom public, titre et logo masquables
+  displayName?: string
+  hideTitle?: boolean
+  hideLogo?: boolean
+}
+
+// Nom de l'événement montré aux invités
+export function shownName(m: { eventName: string; displayName?: string }): string {
+  return m.displayName || m.eventName
 }

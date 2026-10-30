@@ -32,7 +32,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     if (manifestExpired(manifest)) return res.status(410).json({ error: 'expired' })
 
-    const filename = `${slugify(manifest.eventName)}.zip`
+    const filename = `${slugify(manifest.displayName || manifest.eventName)}.zip`
     res.setHeader('Content-Type', 'application/zip')
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
 

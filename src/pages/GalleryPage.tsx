@@ -6,6 +6,7 @@ import NotifyForm from '../components/NotifyForm'
 import ShareMenu from '../components/ShareMenu'
 import { useEffect, useState, type FormEvent } from 'react'
 import { useLang, LangSwitch } from '../lib/i18n'
+import { shownName } from '../types'
 
 export default function GalleryPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -109,16 +110,18 @@ export default function GalleryPage() {
       {/* Hero header */}
       <div style={{ background: 'white', borderBottom: '1px solid #e8eaed', padding: '2rem 1.5rem 1.5rem', textAlign: 'center' }}>
         <LangSwitch />
-        {(manifest.logoUrl || manifest.logoDriveId) && (
+        {!manifest.hideLogo && (manifest.logoUrl || manifest.logoDriveId) && (
           <img
             src={manifest.logoUrl ?? `/api/photo/${manifest.logoDriveId}?token=${token}&mfid=${mfid}`}
             alt=""
-            style={{ maxHeight: 72, maxWidth: 220, objectFit: 'contain', display: 'block', margin: '0 auto 14px' }}
+            style={{ maxHeight: 110, maxWidth: 300, objectFit: 'contain', display: 'block', margin: '0 auto 16px' }}
           />
         )}
-        <h1 style={{ margin: 0, fontSize: 'clamp(24px, 5vw, 40px)', fontWeight: 800, color: '#202124', letterSpacing: -0.5 }}>
-          {manifest.eventName}
-        </h1>
+        {!manifest.hideTitle && (
+          <h1 style={{ margin: 0, fontSize: 'clamp(24px, 5vw, 40px)', fontWeight: 800, color: '#202124', letterSpacing: -0.5 }}>
+            {shownName(manifest)}
+          </h1>
+        )}
         <div style={{ color: '#9aa0a6', marginTop: 8, fontSize: 14 }}>
           {createdAt} · {t('photoCount', { n: manifest.photos.length })}
         </div>
@@ -142,11 +145,11 @@ export default function GalleryPage() {
             )}
             <PhotoGrid photos={manifest.photos} token={token} mfid={mfid} />
             <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: 10, flexWrap: 'wrap' }}>
-              <DownloadButton sessionId={sessionId!} token={token} mfid={mfid} eventName={manifest.eventName} />
+              <DownloadButton sessionId={sessionId!} token={token} mfid={mfid} eventName={shownName(manifest)} />
               <ShareMenu
                 openUp
                 galleryUrl={window.location.href}
-                eventName={manifest.eventName}
+                eventName={shownName(manifest)}
                 logoUrl={manifest.logoKey || manifest.logoDriveId ? `${window.location.origin}/api/logo/${sessionId}?token=${token}` : undefined}
               />
             </div>

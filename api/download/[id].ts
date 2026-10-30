@@ -23,7 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (manifest.sessionId !== String(id) || manifest.token !== String(token)) return res.status(403).json({ error: 'Invalid token' })
     if (manifestExpired(manifest)) return res.status(410).json({ error: 'expired' })
 
-    const filename = `${slugify(manifest.eventName)}-${String(id)}.zip`
+    const filename = `${slugify(manifest.displayName || manifest.eventName)}-${String(id)}.zip`
     res.setHeader('Content-Type', 'application/zip')
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
 

@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { LuDownload } from 'react-icons/lu'
 import PhotoGrid from '../components/PhotoGrid'
-import type { EventManifest } from '../types'
+import { shownName, type EventManifest } from '../types'
 import { useLang, LangSwitch } from '../lib/i18n'
 
 // Galerie « client » : toutes les photos d'un événement, remises à l'organisateur.
@@ -110,16 +110,18 @@ export default function EventGalleryPage() {
     <div style={{ background: '#f8f9fa', minHeight: '100vh', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       <div style={{ background: 'white', borderBottom: '1px solid #e8eaed', padding: '2rem 1.5rem 1.5rem', textAlign: 'center' }}>
         <LangSwitch />
-        {(manifest.logoUrl || manifest.logoDriveId) && (
+        {!manifest.hideLogo && (manifest.logoUrl || manifest.logoDriveId) && (
           <img
             src={manifest.logoUrl ?? `/api/photo/${manifest.logoDriveId}?token=${token}&mfid=${efid}`}
             alt=""
-            style={{ maxHeight: 72, maxWidth: 220, objectFit: 'contain', display: 'block', margin: '0 auto 14px' }}
+            style={{ maxHeight: 110, maxWidth: 300, objectFit: 'contain', display: 'block', margin: '0 auto 16px' }}
           />
         )}
-        <h1 style={{ margin: 0, fontSize: 'clamp(24px, 5vw, 40px)', fontWeight: 800, color: '#202124', letterSpacing: -0.5 }}>
-          {manifest.eventName}
-        </h1>
+        {!manifest.hideTitle && (
+          <h1 style={{ margin: 0, fontSize: 'clamp(24px, 5vw, 40px)', fontWeight: 800, color: '#202124', letterSpacing: -0.5 }}>
+            {shownName(manifest)}
+          </h1>
+        )}
         {manifest.kind === 'tag' && manifest.tagName && (
           <div style={{ marginTop: 6, fontSize: 13, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: '#1967d2' }}>
             {manifest.tagName}

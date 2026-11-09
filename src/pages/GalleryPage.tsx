@@ -125,6 +125,12 @@ export default function GalleryPage() {
         <div style={{ color: '#9aa0a6', marginTop: 8, fontSize: 14 }}>
           {createdAt} · {t('photoCount', { n: manifest.photos.length })}
         </div>
+        {/* Tout télécharger dès l'arrivée, sans faire défiler la galerie */}
+        {manifest.photos.length > 0 && (
+          <div style={{ marginTop: 14 }}>
+            <DownloadButton sessionId={sessionId!} token={token} mfid={mfid} eventName={shownName(manifest)} />
+          </div>
+        )}
       </div>
 
       {/* Photo grid */}

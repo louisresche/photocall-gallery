@@ -136,6 +136,15 @@ export default function EventGalleryPage() {
           {createdAt} · {t('photoCount', { n: manifest.photos.length })}
           {manifest.kind !== 'favorites' && <> · {t('sessionCount', { n: manifest.sessionCount })}</>}
         </div>
+        {/* Tout télécharger dès l'arrivée, sans faire défiler la galerie */}
+        {manifest.photos.length > 0 && (
+          <a
+            href={`/api/event-download/${manifest.eventId}?token=${token}&efid=${efid}`}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 14, padding: '10px 24px', background: '#202124', color: 'white', borderRadius: 24, textDecoration: 'none', fontWeight: 600, fontSize: 14 }}
+          >
+            <LuDownload size={16} />{t('downloadEvent')}
+          </a>
+        )}
       </div>
 
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '1.5rem 1rem 3rem' }}>

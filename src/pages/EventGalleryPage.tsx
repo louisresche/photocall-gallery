@@ -136,7 +136,7 @@ export default function EventGalleryPage() {
           {createdAt} · {t('photoCount', { n: manifest.photos.length })}
           {manifest.kind !== 'favorites' && <> · {t('sessionCount', { n: manifest.sessionCount })}</>}
         </div>
-        {/* Tout télécharger dès l'arrivée, sans faire défiler la galerie */}
+        {/* Tout télécharger dès l'arrivée : le bouton n'est qu'en haut sur les galeries d'événement */}
         {manifest.photos.length > 0 && (
           <a
             href={`/api/event-download/${manifest.eventId}?token=${token}&efid=${efid}`}
@@ -144,6 +144,11 @@ export default function EventGalleryPage() {
           >
             <LuDownload size={16} />{t('downloadEvent')}
           </a>
+        )}
+        {manifest.photos.length > 0 && (
+          <div style={{ fontSize: 11, color: '#9aa0a6', lineHeight: 1.5, maxWidth: 420, margin: '10px auto 0' }}>
+            {t('streamNote')}
+          </div>
         )}
       </div>
 
@@ -154,19 +159,6 @@ export default function EventGalleryPage() {
           </div>
         )}
         <PhotoGrid photos={manifest.photos} token={token} mfid={efid} />
-        {manifest.photos.length > 0 && (
-          <div style={{ marginTop: 28, textAlign: 'center' }}>
-            <a
-              href={`/api/event-download/${manifest.eventId}?token=${token}&efid=${efid}`}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 24px', background: '#202124', color: 'white', borderRadius: 24, textDecoration: 'none', fontWeight: 600, fontSize: 14 }}
-            >
-              <LuDownload size={16} />{t('downloadEvent')}
-            </a>
-            <div style={{ fontSize: 11, color: '#9aa0a6', marginTop: 10, lineHeight: 1.5, maxWidth: 420, margin: '10px auto 0' }}>
-              {t('streamNote')}
-            </div>
-          </div>
-        )}
       </div>
 
       <div style={{ textAlign: 'center', padding: '0 2rem 2rem', color: '#bdc1c6', fontSize: 12 }}>

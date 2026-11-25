@@ -106,7 +106,12 @@ export default function PhotoGrid({ photos, token, mfid }: Props) {
   // celui du manifeste, qui peut ignorer la rotation EXIF ou manquer
   const [measured, setMeasured] = useState<Record<string, number>>({})
   const [gridRef, cols] = useColumns()
-  const thumbUrl = (p: PhotoManifestItem) => p.thumb ?? `/api/photo/${p.thumbnailDriveId}?token=${token}&mfid=${mfid}`
+  // Planches (bandes 5×15 surtout) : leur miniature ne fait que 400 px de haut, une
+  // bande n'y a que 133 px de large et sort très pixellisée dans la grille. On
+  // affiche la planche elle-même (600 × 1800 px pour une bande, fichier léger).
+  const thumbUrl = (p: PhotoManifestItem) => p.filename.startsWith('PLANCHE_')
+    ? p.src ?? `/api/photo/${p.driveFileId}?token=${token}&mfid=${mfid}`
+    : p.thumb ?? `/api/photo/${p.thumbnailDriveId}?token=${token}&mfid=${mfid}`
   const saveUrl = (p: PhotoManifestItem) => p.save ?? p.src ?? `/api/photo/${p.driveFileId}?token=${token}&mfid=${mfid}`
 
   function notify(text: string) {
